@@ -3,11 +3,13 @@ import { dashboard } from '@wix/dashboard';
 import { Button, Page, WixDesignSystemProvider, Box, Text, Layout, Cell } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import * as Icons from '@wix/wix-ui-icons-common';
+import { getAppInstance } from '../../utils/wix';
 
 const Index: FC = () => {
 	const [isConnected, setIsConnected] = useState(false);
 
 	const handleConnectJobber = () => {
+		console.log('getAppInstance', getAppInstance());
 		// TODO: Implement Jobber connection logic
 		setIsConnected(true);
 		dashboard.showToast({

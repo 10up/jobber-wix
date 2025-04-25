@@ -9,12 +9,20 @@ import {
 	DropdownLayoutValueOption,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
+import { getInstance } from '../../../../backend/get-instance.web';
 
 const SITE_WIDGETS_DOCS =
 	'https://dev.wix.com/docs/build-apps/develop-your-app/frameworks/wix-cli/supported-extensions/site-extensions/site-widgets/site-widget-extension-files-and-code';
 
 const Panel: FC = () => {
 	const [formType, setFormType] = useState<string>('');
+
+	useEffect(() => {
+		console.log('calling getInstance');
+		getInstance().then((res) => {
+			console.log('res', res);
+		});
+	}, [formType]);
 
 	useEffect(() => {
 		widget

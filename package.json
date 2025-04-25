@@ -8,7 +8,10 @@
     "@wix/design-system": "^1.0.0",
     "@wix/editor": "^1.354.0",
     "@wix/wix-ui-icons-common": "^3.0.0",
-    "react-to-webcomponent": "^2.0.0"
+    "react-to-webcomponent": "^2.0.0",
+    "@wix/web-methods": "^1.0.6",
+    "@wix/essentials": "^0.1.19",
+    "@wix/app-management": "^1.0.73"
   },
   "devDependencies": {
     "@10up/eslint-config": "^4.1.2",
