@@ -3,18 +3,24 @@ import { dashboard } from '@wix/dashboard';
 import { Button, Page, WixDesignSystemProvider, Box, Text, Layout, Cell } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import * as Icons from '@wix/wix-ui-icons-common';
-import { getAppInstance } from '../../utils/wix';
+import { getAppInstance, getClientUrl } from '../../utils/wix';
 
 const Index: FC = () => {
 	const [isConnected, setIsConnected] = useState(false);
 
-	const handleConnectJobber = () => {
-		console.log('getAppInstance', getAppInstance());
+	const handleConnectJobber = async () => {
 		// TODO: Implement Jobber connection logic
 		setIsConnected(true);
 		dashboard.showToast({
 			message: 'Successfully connected to Jobber!',
 		});
+	};
+
+	const getAuthUrl = () => {
+		const token = getAppInstance();
+		const clientUrl = window.location.origin;
+		const returnUrl = window.location.href;
+		return `http://localhost:8000/wix/auth?jobber_token=${token}&clientUrl=${clientUrl}&returnUrl=${returnUrl}`;
 	};
 
 	return (
@@ -25,7 +31,8 @@ const Index: FC = () => {
 					subtitle="Connect your Jobber account to your Wix site."
 					actionsBar={
 						<Button
-							onClick={handleConnectJobber}
+							as="a"
+							href={getAuthUrl()}
 							prefixIcon={<Icons.Link />}
 							priority="primary"
 							disabled={isConnected}
@@ -57,7 +64,8 @@ const Index: FC = () => {
 								</Text>
 								{!isConnected && (
 									<Button
-										onClick={handleConnectJobber}
+										as="a"
+										href={getAuthUrl()}
 										prefixIcon={<Icons.Link />}
 										priority="primary"
 									>
