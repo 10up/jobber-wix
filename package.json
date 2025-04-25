@@ -1,0 +1,40 @@
+{
+  "name": "jobber",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@wix/blocks": "^1.7.0",
+    "@wix/dashboard": "^1.3.33",
+    "@wix/design-system": "^1.0.0",
+    "@wix/editor": "^1.354.0",
+    "@wix/wix-ui-icons-common": "^3.0.0",
+    "react-to-webcomponent": "^2.0.0"
+  },
+  "devDependencies": {
+    "@10up/eslint-config": "^4.1.2",
+    "@types/react": "^16.0.0",
+    "@types/react-dom": "^16.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
+    "@typescript-eslint/parser": "^8.31.0",
+    "@wix/cli": "^1.0.0",
+    "@wix/cli-app": "^1.0.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.5.3",
+    "react": "16.14.0",
+    "react-dom": "16.14.0",
+    "typescript": "~5.8.2"
+  },
+  "scripts": {
+    "wix": "wix",
+    "build": "wix app build",
+    "release": "wix app release",
+    "dev": "wix app dev",
+    "preview": "wix app preview",
+    "generate": "wix app generate",
+    "logs": "wix app logs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  }
+}

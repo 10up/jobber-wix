@@ -1,0 +1,27 @@
+{
+  "$schema": "https://dev.wix.com/wix-cli/schemas/custom-element.json",
+  "id": "26960905-9e80-45c5-ab06-d9dec6d687df",
+  "name": "Jobber",
+  "width": {
+    "defaultWidth": 450,
+    "allowStretch": true
+  },
+  "height": {
+    "defaultHeight": 250
+  },
+  "installation": {
+    "autoAddToSite": false
+  },
+  "behaviors": {
+    "dashboard": {
+      "dashboardPageComponentId": "2b8b12d1-88a3-41e1-bd8e-c67c6a774b7b"
+    }
+  },
+  "presets": [
+    {
+      "id": "6a9a4fd7-c4de-41e5-b0cf-9347d6205b14",
+      "thumbnailUrl": "../../../../assets/jobber-widget/thumbnail.png"
+    }
+  ]
+}
+

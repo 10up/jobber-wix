@@ -1,0 +1,32 @@
+:root {
+  --background-color: #242A35;
+  --text-color: #fcfdfd;
+  --secondary-text-color: #c9c9c9;
+  --code-color: #d7d7d7;
+}
+
+.root {
+  width: 100%;
+  height: 100%;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  box-sizing: border-box;
+  padding: 3rem 1rem;
+  font-size: 14px;
+}
+
+.root h2 {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.root p {
+  color: var(--secondary-text-color);
+}
+
+.root code {
+  color: var(--code-color);
+  font-size: 0.8rem;
+  font-weight: bolder;
+}
+
