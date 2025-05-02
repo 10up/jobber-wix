@@ -10,6 +10,15 @@ const Index: FC = () => {
 	const [isConnected, setIsConnected] = useState(false);
 	const [authUrl, setAuthUrl] = useState('');
 
+	const getAuthorizationUrl = async () => {
+		const token = getAppInstance();
+		const clientUrl = import.meta.env.BASE_API_URL;
+		const returnUrl = await dashboard.getPageUrl({
+			pageId: '2b8b12d1-88a3-41e1-bd8e-c67c6a774b7b',
+		});
+		return `http://localhost:8000/wix/auth?jobber_token=${token}&clientUrl=${clientUrl}&returnUrl=${returnUrl}`;
+	};
+
 	useEffect(() => {
 		const getAuthUrl = async () => {
 			const url = await getAuthorizationUrl();
@@ -27,16 +36,6 @@ const Index: FC = () => {
 		dashboard.showToast({
 			message: 'Successfully connected to Jobber!',
 		});
-	};
-
-	const getAuthorizationUrl = async () => {
-		const token = getAppInstance();
-		const clientUrl = import.meta.env.BASE_API_URL;
-		const returnUrl = await dashboard.getPageUrl({
-			pageId: '2b8b12d1-88a3-41e1-bd8e-c67c6a774b7b',
-			relativeUrl: '?referal=page-3',
-		});
-		return `http://localhost:8000/wix/auth?jobber_token=${token}&clientUrl=${clientUrl}&returnUrl=${returnUrl}`;
 	};
 
 	return (

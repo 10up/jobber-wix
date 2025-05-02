@@ -17,12 +17,22 @@ function MyComponent() {
 };
  */
 
+import { auth } from '@wix/essentials';
+
 export async function GET(req: Request) {
-	console.log('Log from GET.');
 	return new Response('Response from GET.');
 }
 
 export async function POST(req: Request) {
-	console.log('Log from POST.');
-	return Response.json({ success: true });
+	try {
+		const token = await auth.getTokenInfo();
+
+		return Response.json({ success: token.active });
+	} catch (error) {
+		console.error('Error in POST:', error);
+		return Response.json(
+			{ success: false, error: 'Failed to get token info' },
+			{ status: 500 },
+		);
+	}
 }
