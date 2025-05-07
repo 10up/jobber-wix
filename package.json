@@ -6,7 +6,7 @@
     "@wix/app-management": "^1.0.73",
     "@wix/blocks": "^1.7.0",
     "@wix/dashboard": "^1.3.33",
-    "@wix/design-system": "^1.0.0",
+    "@wix/design-system": "^1.183.0",
     "@wix/editor": "^1.354.0",
     "@wix/essentials": "^0.1.19",
     "@wix/web-methods": "^1.0.6",
