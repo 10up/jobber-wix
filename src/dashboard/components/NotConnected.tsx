@@ -2,10 +2,10 @@ import React, { type FC } from 'react';
 import { Box, Text, Button } from '@wix/design-system';
 import { Info as InfoIcon, Link as LinkIcon } from '@wix/wix-ui-icons-common';
 
-interface NotConnectedProps {
+type NotConnectedProps = {
 	authUrl: string;
 	isButtonDisabled: boolean;
-}
+};
 
 export const NotConnected: FC<NotConnectedProps> = ({ authUrl, isButtonDisabled }) => (
 	<>
