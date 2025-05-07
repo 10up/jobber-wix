@@ -1,0 +1,8 @@
+{
+  "$schema": "https://dev.wix.com/wix-cli/schemas/wix-config.json",
+  "appId": "caff3654-7b26-44e5-b8a1-f7b64e11aa36",
+  "projectId": "jobber",
+  "blocks": {
+    "uiRevision": ""
+  }
+}

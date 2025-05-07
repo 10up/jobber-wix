@@ -1,0 +1,14 @@
+{
+  "include": [
+    "src",
+    ".wix/blocks/types.d.ts",
+    ".eslintrc.js"
+  ],
+  "extends": "@wix/cli-app/tsconfig.app.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "types": [
+      "react"
+    ]
+  }
+}
