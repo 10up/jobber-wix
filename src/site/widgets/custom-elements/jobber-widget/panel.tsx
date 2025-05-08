@@ -1,5 +1,5 @@
-import React, { type FC, useState, useEffect, useCallback } from 'react';
-import { createClient } from '@wix/sdk';
+import React, { type FC, useState, useEffect, useCallback, useRef } from 'react';
+
 import { widget, editor } from '@wix/editor';
 import {
 	SidePanel,
@@ -8,54 +8,60 @@ import {
 	FormField,
 	SectionHelper,
 	DropdownLayoutValueOption,
+	Loader,
+	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
-import { getInstance } from '../../../../backend/get-instance.web';
-import { getMiddlewareUrl } from '../../../../utils/api';
+import { useFetchJobberForms } from '../../../../hooks/useFetchJobberForms';
 
-const SITE_WIDGETS_DOCS =
-	'https://dev.wix.com/docs/build-apps/develop-your-app/frameworks/wix-cli/supported-extensions/site-extensions/site-widgets/site-widget-extension-files-and-code';
+const options = [
+	{
+		id: 'request',
+		value: 'Request',
+	},
+	{
+		id: 'booking',
+		value: 'Booking',
+	},
+];
 
 const Panel: FC = () => {
-	const options = [
-		{
-			id: 'request',
-			value: 'Request',
-		},
-		{
-			id: 'booking',
-			value: 'Booking',
-		},
-	];
-	const [formType, setFormType] = useState<string>(options[0].id);
+	const [formType, setFormType] = useState<string>();
+	const previousFormTypeRef = useRef<string>();
+	const [currentEmbedScript, setCurrentEmbedScript] = useState<string | null>(null);
 
-	useEffect(() => {
-		const client = createClient({
-			host: editor.host(),
-			auth: editor.auth(),
-			modules: {
-				widget,
-			},
-		});
+	const shouldFetch = useCallback(() => {
+		if (!formType) {
+			return false;
+		}
 
-		getInstance().then(({ site }) => {
-			client
-				.fetchWithAuth(
-					`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}`,
-					{
-						headers: {
-							'x-jobber-integration': 'wix',
-						},
-					},
-				)
-				.then((res) => res.json())
-				.then(({ data }) => {
-					if (data?.requestSettings?.requestEmbedScript) {
-						widget.setProp('embed-script', data.requestSettings.requestEmbedScript);
-					}
-				});
-		});
-	}, [formType]);
+		// Fetch if form type changed
+		if (formType !== previousFormTypeRef.current) {
+			return true;
+		}
+
+		// Fetch if no embed script
+		if (typeof currentEmbedScript === 'string' && currentEmbedScript.length === 0) {
+			return true;
+		}
+
+		return false;
+	}, [formType, currentEmbedScript]);
+
+	const onSuccess = useCallback(
+		(embedScript: string) => {
+			widget.setProp('embed-script', embedScript);
+			setCurrentEmbedScript(embedScript);
+			previousFormTypeRef.current = formType;
+		},
+		[formType],
+	);
+
+	const { isLoading, error } = useFetchJobberForms({
+		formType: formType as 'request' | 'booking',
+		onSuccess,
+		shouldFetch,
+	});
 
 	useEffect(() => {
 		widget
@@ -63,6 +69,15 @@ const Panel: FC = () => {
 			.then((formType) => setFormType(formType || 'request'))
 			.catch((error) => console.error('Failed to fetch form-type:', error));
 	}, [setFormType]);
+
+	useEffect(() => {
+		widget
+			.getProp('embed-script')
+			.then((embedScript) => {
+				setCurrentEmbedScript(embedScript || '');
+			})
+			.catch((error) => console.error('Failed to fetch embed-script:', error));
+	}, [setCurrentEmbedScript]);
 
 	const handleFormTypeChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
@@ -89,16 +104,45 @@ const Panel: FC = () => {
 					</SidePanel.Field>
 				</SidePanel.Content>
 				<SidePanel.Footer noPadding>
-					<SectionHelper fullWidth appearance="success" border="topBottom">
-						Learn more about{' '}
-						<a
-							href={SITE_WIDGETS_DOCS}
-							target="_blank"
-							rel="noopener noreferrer"
-							title="Site Widget docs"
-						>
-							Site Widgets
-						</a>
+					<SectionHelper
+						fullWidth
+						appearance={error ? 'warning' : 'success'}
+						border="topBottom"
+					>
+						{isLoading && (
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									gap: '8px',
+								}}
+							>
+								<Loader size="tiny" />
+								<Text size="small" weight="normal">
+									Fetching Jobber form...
+								</Text>
+							</div>
+						)}
+						{error && (
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									gap: '8px',
+								}}
+							>
+								<Text size="small" weight="normal">
+									Error fetching Jobber form. Please try again.
+								</Text>
+							</div>
+						)}
+						{!isLoading && !error && currentEmbedScript && (
+							<Text size="small" weight="normal">
+								Jobber form fetched successfully.
+							</Text>
+						)}
 					</SectionHelper>
 				</SidePanel.Footer>
 			</SidePanel>
