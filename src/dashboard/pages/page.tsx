@@ -1,33 +1,16 @@
-import React, { type FC, useEffect, useState } from 'react';
-import { dashboard } from '@wix/dashboard';
+import React, { type FC } from 'react';
 import { Button, Page, WixDesignSystemProvider, Box, Layout, Cell } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import { Link as LinkIcon } from '@wix/wix-ui-icons-common';
-import { getAuthUrl } from '../../utils/api';
 import { Loading } from '../components/Loading';
 import { NotConnected } from '../components/NotConnected';
 import { Connected } from '../components/Connected';
-import pageMetadata from './page.json';
-import { getAppInstanceFromUrl } from '../../utils/wix';
 import { useIsConnected } from '../../hooks/useIsConnected';
-
-async function getAuthorizationUrl() {
-	const instance = getAppInstanceFromUrl();
-	const returnUrl = await dashboard.getPageUrl({
-		pageId: pageMetadata.id,
-	});
-	return getAuthUrl(instance, returnUrl);
-}
+import { useAuthorizationUrl } from '../../hooks/useAuthorizationUrl';
 
 const Index: FC = () => {
 	const { isConnected, isLoading } = useIsConnected();
-	const [authUrl, setAuthUrl] = useState('');
-
-	useEffect(() => {
-		getAuthorizationUrl().then((url) => {
-			setAuthUrl(url);
-		});
-	}, []);
+	const authUrl = useAuthorizationUrl();
 
 	const isAuthCheckLoading = isLoading || !authUrl;
 	const isButtonDisabled = isAuthCheckLoading || isConnected;
