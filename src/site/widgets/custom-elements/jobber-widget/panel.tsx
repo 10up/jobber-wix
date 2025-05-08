@@ -1,6 +1,6 @@
 import React, { type FC, useState, useEffect, useCallback } from 'react';
 import { createClient } from '@wix/sdk';
-import { editor, widget } from '@wix/editor';
+import { widget, editor } from '@wix/editor';
 import {
 	SidePanel,
 	WixDesignSystemProvider,
@@ -37,6 +37,7 @@ const Panel: FC = () => {
 				widget,
 			},
 		});
+
 		getInstance().then(({ site }) => {
 			client
 				.fetchWithAuth(
@@ -48,8 +49,10 @@ const Panel: FC = () => {
 					},
 				)
 				.then((res) => res.json())
-				.then((data) => {
-					console.log('data', data);
+				.then(({ data }) => {
+					if (data?.requestSettings?.requestEmbedScript) {
+						widget.setProp('embed-script', data.requestSettings.requestEmbedScript);
+					}
 				});
 		});
 	}, [formType]);

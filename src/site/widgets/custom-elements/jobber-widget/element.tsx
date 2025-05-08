@@ -9,6 +9,7 @@ interface Props {
 }
 
 const CustomElement: FC<Props> = ({ formType = 'request', embedScript = '' }) => {
+	console.log('embedScript', embedScript);
 	return (
 		<div className={styles.root}>
 			<h2>{formType}</h2>
