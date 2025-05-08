@@ -3,45 +3,30 @@ import { dashboard } from '@wix/dashboard';
 import { Button, Page, WixDesignSystemProvider, Box, Layout, Cell } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import { Link as LinkIcon } from '@wix/wix-ui-icons-common';
-import { getInstance } from '../../backend/get-instance.web';
 import { getAuthUrl } from '../../utils/api';
 import { Loading } from '../components/Loading';
 import { NotConnected } from '../components/NotConnected';
 import { Connected } from '../components/Connected';
 import pageMetadata from './page.json';
 import { getAppInstanceFromUrl } from '../../utils/wix';
+import { useIsConnected } from '../../hooks/useIsConnected';
 
 async function getAuthorizationUrl() {
-	const { site } = await getInstance();
 	const instance = getAppInstanceFromUrl();
 	const returnUrl = await dashboard.getPageUrl({
 		pageId: pageMetadata.id,
 	});
-	return getAuthUrl(instance, site?.siteId!, returnUrl);
+	return getAuthUrl(instance, returnUrl);
 }
 
 const Index: FC = () => {
-	const [isConnected, setIsConnected] = useState(false);
+	const { isConnected, isLoading } = useIsConnected();
 	const [authUrl, setAuthUrl] = useState('');
-	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
 		getAuthorizationUrl().then((url) => {
 			setAuthUrl(url);
 		});
-
-		const checkConnection = async () => {
-			setIsLoading(true);
-			return new Promise((resolve) => {
-				setTimeout(() => {
-					setIsConnected(false);
-					setIsLoading(false);
-					resolve(false);
-				}, 500);
-			});
-		};
-
-		checkConnection();
 	}, []);
 
 	const isAuthCheckLoading = isLoading || !authUrl;
