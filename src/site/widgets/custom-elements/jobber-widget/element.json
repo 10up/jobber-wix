@@ -7,7 +7,8 @@
     "allowStretch": true
   },
   "height": {
-    "defaultHeight": 250
+    "defaultHeight": 500
+
   },
   "installation": {
     "autoAddToSite": false
