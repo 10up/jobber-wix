@@ -27,7 +27,7 @@ const options = [
 
 const Panel: FC = () => {
 	const [formType, setFormType] = useState<string>();
-	const previousFormTypeRef = useRef<string>();
+	const previousFormTypeRef = useRef<string | null>(null);
 	const [currentEmbedScript, setCurrentEmbedScript] = useState<string | null>(null);
 
 	const shouldFetch = useCallback(() => {
@@ -36,7 +36,10 @@ const Panel: FC = () => {
 		}
 
 		// Fetch if form type changed
-		if (formType !== previousFormTypeRef.current) {
+		if (
+			typeof previousFormTypeRef.current === 'string' &&
+			formType !== previousFormTypeRef.current
+		) {
 			return true;
 		}
 
@@ -52,7 +55,7 @@ const Panel: FC = () => {
 		(embedScript: string) => {
 			widget.setProp('embed-script', embedScript);
 			setCurrentEmbedScript(embedScript);
-			previousFormTypeRef.current = formType;
+			previousFormTypeRef.current = formType ?? null;
 		},
 		[formType],
 	);
@@ -66,7 +69,10 @@ const Panel: FC = () => {
 	useEffect(() => {
 		widget
 			.getProp('form-type')
-			.then((formType) => setFormType(formType || 'request'))
+			.then((formType) => {
+				setFormType(formType || 'request');
+				previousFormTypeRef.current = formType || null;
+			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
 	}, [setFormType]);
 
