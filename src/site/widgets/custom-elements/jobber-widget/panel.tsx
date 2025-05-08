@@ -1,5 +1,6 @@
 import React, { type FC, useState, useEffect, useCallback } from 'react';
-import { widget } from '@wix/editor';
+import { createClient } from '@wix/sdk';
+import { editor, widget } from '@wix/editor';
 import {
 	SidePanel,
 	WixDesignSystemProvider,
@@ -10,18 +11,46 @@ import {
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import { getInstance } from '../../../../backend/get-instance.web';
+import { getMiddlewareUrl } from '../../../../utils/api';
 
 const SITE_WIDGETS_DOCS =
 	'https://dev.wix.com/docs/build-apps/develop-your-app/frameworks/wix-cli/supported-extensions/site-extensions/site-widgets/site-widget-extension-files-and-code';
 
 const Panel: FC = () => {
-	const [formType, setFormType] = useState<string>('');
+	const options = [
+		{
+			id: 'request',
+			value: 'Request',
+		},
+		{
+			id: 'booking',
+			value: 'Booking',
+		},
+	];
+	const [formType, setFormType] = useState<string>(options[0].id);
 
 	useEffect(() => {
-		console.log('calling getInstance');
-		getInstance().then((res) => {
-			console.log('res', res);
-			// fetch jobber form from middleware
+		const client = createClient({
+			host: editor.host(),
+			auth: editor.auth(),
+			modules: {
+				widget,
+			},
+		});
+		getInstance().then(({ site }) => {
+			client
+				.fetchWithAuth(
+					`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}`,
+					{
+						headers: {
+							'x-jobber-integration': 'wix',
+						},
+					},
+				)
+				.then((res) => res.json())
+				.then((data) => {
+					console.log('data', data);
+				});
 		});
 	}, [formType]);
 
@@ -40,17 +69,6 @@ const Panel: FC = () => {
 		},
 		[setFormType],
 	);
-
-	const options = [
-		{
-			id: 'request',
-			value: 'Request',
-		},
-		{
-			id: 'booking',
-			value: 'Booking',
-		},
-	];
 
 	return (
 		<WixDesignSystemProvider>

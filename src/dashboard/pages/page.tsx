@@ -9,13 +9,15 @@ import { Loading } from '../components/Loading';
 import { NotConnected } from '../components/NotConnected';
 import { Connected } from '../components/Connected';
 import pageMetadata from './page.json';
+import { getAppInstanceFromUrl } from '../../utils/wix';
 
 async function getAuthorizationUrl() {
-	const { instance, site } = await getInstance();
+	const { site } = await getInstance();
+	const instance = getAppInstanceFromUrl();
 	const returnUrl = await dashboard.getPageUrl({
 		pageId: pageMetadata.id,
 	});
-	return getAuthUrl(instance?.instanceId!, site?.siteId!, returnUrl);
+	return getAuthUrl(instance, site?.siteId!, returnUrl);
 }
 
 const Index: FC = () => {
