@@ -34,7 +34,7 @@ const CustomElement: FC<Props> = ({
 		const markupContainer = shadowRoot.ownerDocument.createElement('div');
 		markupContainer.setAttribute('data-jobber-form-type', formType);
 		markupContainer.innerHTML = embedScript.markup;
-		shadowRoot.appendChild(markupContainer);
+		container.appendChild(markupContainer);
 
 		// Add scripts
 		embedScript.scripts.forEach((scriptContent) => {
