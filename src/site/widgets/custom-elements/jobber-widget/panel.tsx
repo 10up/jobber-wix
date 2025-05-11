@@ -12,7 +12,7 @@ import {
 	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
-import { useFetchJobberForms } from '../../../../hooks/useFetchJobberForms';
+import { useFetchJobberForms, type EmbedObject } from '../../../../hooks/useFetchJobberForms';
 
 const options = [
 	{
@@ -28,7 +28,7 @@ const options = [
 const Panel: FC = () => {
 	const [formType, setFormType] = useState<string>();
 	const previousFormTypeRef = useRef<string | null>(null);
-	const [currentEmbedScript, setCurrentEmbedScript] = useState<string | null>(null);
+	const [currentEmbedScript, setCurrentEmbedScript] = useState<EmbedObject | null>(null);
 
 	const shouldFetch = useCallback(() => {
 		if (!formType) {
@@ -44,7 +44,7 @@ const Panel: FC = () => {
 		}
 
 		// Fetch if no embed script
-		if (typeof currentEmbedScript === 'string' && currentEmbedScript.length === 0) {
+		if (!currentEmbedScript) {
 			return true;
 		}
 
@@ -52,8 +52,8 @@ const Panel: FC = () => {
 	}, [formType, currentEmbedScript]);
 
 	const onSuccess = useCallback(
-		(embedScript: string) => {
-			widget.setProp('embed-script', embedScript);
+		(embedScript: EmbedObject) => {
+			widget.setProp('embed-script', JSON.stringify(embedScript));
 			setCurrentEmbedScript(embedScript);
 			previousFormTypeRef.current = formType ?? null;
 		},
@@ -80,7 +80,7 @@ const Panel: FC = () => {
 		widget
 			.getProp('embed-script')
 			.then((embedScript) => {
-				setCurrentEmbedScript(embedScript || '');
+				setCurrentEmbedScript(embedScript ? JSON.parse(embedScript) : null);
 			})
 			.catch((error) => console.error('Failed to fetch embed-script:', error));
 	}, [setCurrentEmbedScript]);

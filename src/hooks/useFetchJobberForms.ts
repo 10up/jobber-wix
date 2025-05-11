@@ -6,24 +6,37 @@ import { getInstance } from '../backend/get-instance.web';
 
 type FormType = 'request' | 'booking';
 
-interface UseFetchJobberFormsProps {
+export type EmbedObject = {
+	markup: string;
+	styles: string[];
+	scripts: Array<{
+		attributes: Record<string, string>;
+		content: string;
+	}>;
+};
+
+type UseFetchJobberFormsProps = {
 	formType: FormType;
-	onSuccess: (data: any) => void;
+	onSuccess: (data: EmbedObject) => void;
 	shouldFetch?: () => boolean;
-}
+};
 
 export function useFetchJobberForms({
 	formType,
 	onSuccess,
 	shouldFetch = () => true,
 }: UseFetchJobberFormsProps) {
-	const [embedScript, setEmbedScript] = useState<string>('');
+	const [embedScript, setEmbedScript] = useState<EmbedObject>({
+		markup: '',
+		styles: [],
+		scripts: [],
+	});
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [error, setError] = useState<Error | null>(null);
 
 	useEffect(() => {
 		if (!shouldFetch()) {
-			return;
+			return undefined;
 		}
 
 		const abortController = new AbortController();
@@ -41,7 +54,7 @@ export function useFetchJobberForms({
 		getInstance().then(({ site }) => {
 			client
 				.fetchWithAuth(
-					`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}`,
+					`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}&output=inline`,
 					{
 						headers: {
 							'x-jobber-integration': 'wix',
@@ -50,19 +63,12 @@ export function useFetchJobberForms({
 					},
 				)
 				.then((res) => res.json())
-				.then(({ data }) => {
-					let embedScript = '';
-					if (data?.requestSettings?.requestEmbedScript) {
-						setEmbedScript(data.requestSettings.requestEmbedScript);
-						embedScript = data.requestSettings.requestEmbedScript;
-						onSuccess(embedScript);
-					} else if (data?.onlineBookingConfiguration?.bookingEmbedScript) {
-						setEmbedScript(data.onlineBookingConfiguration.bookingEmbedScript);
-						embedScript = data.onlineBookingConfiguration.bookingEmbedScript;
-						onSuccess(embedScript);
-					} else {
-						setError(new Error('No embed script found'));
+				.then((data: EmbedObject) => {
+					if (!data.markup) {
+						throw new Error('No embed script found');
 					}
+					setEmbedScript(data);
+					onSuccess(data);
 				})
 				.catch((error) => {
 					if (error.name === 'AbortError') {
