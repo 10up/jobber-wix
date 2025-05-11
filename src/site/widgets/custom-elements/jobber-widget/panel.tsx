@@ -90,6 +90,14 @@ const Panel: FC = () => {
 			const newFormType = option.id.toString();
 			setFormType(newFormType);
 			widget.setProp('form-type', newFormType);
+			widget.setProp(
+				'embed-script',
+				JSON.stringify({
+					markup: '',
+					styles: [],
+					scripts: [],
+				}),
+			);
 		},
 		[setFormType],
 	);

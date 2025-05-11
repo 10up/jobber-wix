@@ -19,6 +19,8 @@ const CustomElement: FC<Props> = ({
 		const container = containerRef.current;
 		if (!embedScript.markup || !container) return undefined;
 
+		container.innerHTML = '';
+
 		// Get the shadow root from the container
 		const shadowRoot = container.getRootNode() as ShadowRoot;
 		if (!shadowRoot) return undefined;
@@ -81,7 +83,7 @@ const CustomElement: FC<Props> = ({
 		);
 	}
 
-	return <div ref={containerRef} className={styles.root} />;
+	return <div ref={containerRef} />;
 };
 
 const customElement = reactToWebComponent(CustomElement, React, ReactDOM as any, {
