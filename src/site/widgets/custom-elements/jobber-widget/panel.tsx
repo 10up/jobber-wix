@@ -1,4 +1,5 @@
 import React, { type FC, useState, useEffect, useCallback } from 'react';
+
 import { widget } from '@wix/editor';
 import {
 	SidePanel,
@@ -7,50 +8,55 @@ import {
 	FormField,
 	SectionHelper,
 	DropdownLayoutValueOption,
+	Loader,
+	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
-import { getInstance } from '../../../../backend/get-instance.web';
+import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
 
-const SITE_WIDGETS_DOCS =
-	'https://dev.wix.com/docs/build-apps/develop-your-app/frameworks/wix-cli/supported-extensions/site-extensions/site-widgets/site-widget-extension-files-and-code';
+const options = [
+	{
+		id: 'request',
+		value: 'Request',
+	},
+	{
+		id: 'booking',
+		value: 'Booking',
+	},
+];
 
 const Panel: FC = () => {
-	const [formType, setFormType] = useState<string>('');
+	const [formType, setFormType] = useState<FormType | null>(null);
+
+	const { isLoading, error, embedScript } = useFetchJobberForms({
+		formType,
+	});
 
 	useEffect(() => {
-		console.log('calling getInstance');
-		getInstance().then((res) => {
-			console.log('res', res);
-			// fetch jobber form from middleware
-		});
-	}, [formType]);
+		if (embedScript) {
+			widget.setProp('embed-script', JSON.stringify(embedScript));
+		}
+	}, [embedScript]);
 
 	useEffect(() => {
 		widget
 			.getProp('form-type')
-			.then((formType) => setFormType(formType || 'request'))
+			.then((formType) => {
+				if (formType) {
+					setFormType(formType as FormType);
+				}
+			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
 	}, [setFormType]);
 
 	const handleFormTypeChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
 			const newFormType = option.id.toString();
-			setFormType(newFormType);
+			setFormType(newFormType as FormType);
 			widget.setProp('form-type', newFormType);
 		},
 		[setFormType],
 	);
-
-	const options = [
-		{
-			id: 'request',
-			value: 'Request',
-		},
-		{
-			id: 'booking',
-			value: 'Booking',
-		},
-	];
 
 	return (
 		<WixDesignSystemProvider>
@@ -59,7 +65,7 @@ const Panel: FC = () => {
 					<SidePanel.Field>
 						<FormField label="Form Type">
 							<Dropdown
-								selectedId={formType}
+								selectedId={formType ?? undefined}
 								options={options}
 								onSelect={handleFormTypeChange}
 								aria-label="Form Type"
@@ -67,19 +73,51 @@ const Panel: FC = () => {
 						</FormField>
 					</SidePanel.Field>
 				</SidePanel.Content>
-				<SidePanel.Footer noPadding>
-					<SectionHelper fullWidth appearance="success" border="topBottom">
-						Learn more about{' '}
-						<a
-							href={SITE_WIDGETS_DOCS}
-							target="_blank"
-							rel="noopener noreferrer"
-							title="Site Widget docs"
+				{isLoading || error || embedScript.markup ? (
+					<SidePanel.Footer noPadding>
+						<SectionHelper
+							fullWidth
+							appearance={error && !isLoading ? 'warning' : 'success'}
+							border="topBottom"
 						>
-							Site Widgets
-						</a>
-					</SectionHelper>
-				</SidePanel.Footer>
+							{isLoading && (
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										gap: '8px',
+									}}
+								>
+									<Loader size="tiny" />
+									<Text size="small" weight="normal">
+										Fetching Jobber form...
+									</Text>
+								</div>
+							)}
+							{error && !isLoading && (
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										gap: '8px',
+									}}
+								>
+									<Text size="small" weight="normal">
+										Error fetching form. Please try again or check your
+										connection to Jobber.
+									</Text>
+								</div>
+							)}
+							{!isLoading && !error && embedScript.markup && (
+								<Text size="small" weight="normal">
+									Jobber form fetched successfully.
+								</Text>
+							)}
+						</SectionHelper>
+					</SidePanel.Footer>
+				) : null}
 			</SidePanel>
 		</WixDesignSystemProvider>
 	);
