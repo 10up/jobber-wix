@@ -102,7 +102,7 @@ const Panel: FC = () => {
 									</Text>
 								</div>
 							)}
-							{error && (
+							{error && !isLoading && (
 								<div
 									style={{
 										display: 'flex',
