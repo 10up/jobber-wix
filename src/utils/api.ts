@@ -1,4 +1,10 @@
+import { isProd } from './env';
+
 export function getMiddlewareUrl() {
+	if (isProd()) {
+		return 'https://jobber-prod.10upmanaged.io';
+	}
+
 	return 'http://localhost:8000';
 }
 

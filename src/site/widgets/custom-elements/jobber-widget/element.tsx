@@ -18,9 +18,12 @@ const CustomElement: FC<Props> = ({
 
 	useEffect(() => {
 		const container = containerRef.current;
-		if (!embedScript.markup || !container) return undefined;
+
+		if (!container) return undefined;
 
 		container.innerHTML = '';
+
+		if (!embedScript.markup) return undefined;
 
 		// Get the shadow root from the container
 		const shadowRoot = container.getRootNode() as ShadowRoot;
