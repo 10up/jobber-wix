@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import reactToWebComponent from 'react-to-webcomponent';
 import styles from './element.module.css';
 import { type EmbedObject } from '../../../../hooks/useFetchJobberForms';
+import NoMarkup from './no-markup';
 
 interface Props {
 	formType?: 'request' | 'booking';
@@ -11,7 +12,7 @@ interface Props {
 
 const CustomElement: FC<Props> = ({
 	formType = 'request',
-	embedScript = { markup: '', styles: [], scripts: [] },
+	embedScript = { markup: '', scripts: [] },
 }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 
@@ -24,13 +25,6 @@ const CustomElement: FC<Props> = ({
 		// Get the shadow root from the container
 		const shadowRoot = container.getRootNode() as ShadowRoot;
 		if (!shadowRoot) return undefined;
-
-		// Add styles
-		embedScript.styles.forEach((styleContent) => {
-			const style = shadowRoot.ownerDocument.createElement('style');
-			style.textContent = styleContent;
-			shadowRoot.appendChild(style);
-		});
 
 		// Add markup
 		const markupContainer = shadowRoot.ownerDocument.createElement('div');
@@ -78,12 +72,10 @@ const CustomElement: FC<Props> = ({
 	}, [embedScript, formType]);
 
 	if (!embedScript.markup) {
-		return (
-			<div className={styles.root}>Please configure a form type in the widget settings</div>
-		);
+		return <NoMarkup />;
 	}
 
-	return <div ref={containerRef} />;
+	return <div ref={containerRef} className={styles.root} />;
 };
 
 const customElement = reactToWebComponent(CustomElement, React, ReactDOM as any, {

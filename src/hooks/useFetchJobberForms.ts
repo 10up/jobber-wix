@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { createClient } from '@wix/sdk';
 import { editor, widget } from '@wix/editor';
 import { getMiddlewareUrl } from '../utils/api';
 import { getInstance } from '../backend/get-instance.web';
 
-type FormType = 'request' | 'booking';
+export type FormType = 'request' | 'booking';
 
 export type EmbedObject = {
 	markup: string;
-	styles: string[];
 	scripts: Array<{
 		attributes: Record<string, string>;
 		content: string;
@@ -17,77 +16,40 @@ export type EmbedObject = {
 
 type UseFetchJobberFormsProps = {
 	formType: FormType;
-	onSuccess: (data: EmbedObject) => void;
-	shouldFetch?: () => boolean;
 };
 
-export function useFetchJobberForms({
-	formType,
-	onSuccess,
-	shouldFetch = () => true,
-}: UseFetchJobberFormsProps) {
-	const [embedScript, setEmbedScript] = useState<EmbedObject>({
-		markup: '',
-		styles: [],
-		scripts: [],
+async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
+	const client = createClient({
+		host: editor.host(),
+		auth: editor.auth(),
+		modules: {
+			widget,
+		},
 	});
-	const [isLoading, setIsLoading] = useState<boolean>(false);
-	const [error, setError] = useState<Error | null>(null);
-
-	useEffect(() => {
-		if (!shouldFetch()) {
-			return undefined;
-		}
-
-		const abortController = new AbortController();
-		setIsLoading(true);
-		setError(null);
-
-		const client = createClient({
-			host: editor.host(),
-			auth: editor.auth(),
-			modules: {
-				widget,
+	const { site } = await getInstance();
+	const res = await client.fetchWithAuth(
+		`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}&output=inline`,
+		{
+			headers: {
+				'x-jobber-integration': 'wix',
 			},
-		});
+		},
+	);
+	const data = await res.json();
+	if (!data.markup) {
+		throw new Error('No embed script found');
+	}
+	return data;
+}
 
-		getInstance().then(({ site }) => {
-			client
-				.fetchWithAuth(
-					`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}&output=inline`,
-					{
-						headers: {
-							'x-jobber-integration': 'wix',
-						},
-						signal: abortController.signal,
-					},
-				)
-				.then((res) => res.json())
-				.then((data: EmbedObject) => {
-					if (!data.markup) {
-						throw new Error('No embed script found');
-					}
-					setEmbedScript(data);
-					onSuccess(data);
-				})
-				.catch((error) => {
-					if (error.name === 'AbortError') {
-						return;
-					}
-					console.log('error', error);
-					setError(error);
-				})
-				.finally(() => {
-					if (!abortController.signal.aborted) {
-						setIsLoading(false);
-					}
-				});
-		});
+export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
+	const { data, error, isLoading } = useSWR<EmbedObject>(formType ?? null, fetchJobberForm, {
+		shouldRetryOnError: false,
+	});
 
-		return () => {
-			abortController.abort();
-		};
-	}, [formType, onSuccess, shouldFetch]);
-
-	return { embedScript, isLoading, error };
+	return {
+		embedScript: data ?? { markup: '', scripts: [] },
+		isLoading,
+		error,
+	};
 }

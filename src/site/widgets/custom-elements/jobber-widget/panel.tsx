@@ -1,6 +1,6 @@
-import React, { type FC, useState, useEffect, useCallback, useRef } from 'react';
+import React, { type FC, useState, useEffect, useCallback } from 'react';
 
-import { widget, editor } from '@wix/editor';
+import { widget } from '@wix/editor';
 import {
 	SidePanel,
 	WixDesignSystemProvider,
@@ -12,7 +12,7 @@ import {
 	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
-import { useFetchJobberForms, type EmbedObject } from '../../../../hooks/useFetchJobberForms';
+import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
 
 const options = [
 	{
@@ -27,63 +27,25 @@ const options = [
 
 const Panel: FC = () => {
 	const [formType, setFormType] = useState<string>();
-	const previousFormTypeRef = useRef<string | null>(null);
-	const [currentEmbedScript, setCurrentEmbedScript] = useState<EmbedObject | null>(null);
 
-	const shouldFetch = useCallback(() => {
-		if (!formType) {
-			return false;
-		}
-
-		// Fetch if form type changed
-		if (
-			typeof previousFormTypeRef.current === 'string' &&
-			formType !== previousFormTypeRef.current
-		) {
-			return true;
-		}
-
-		// Fetch if no embed script
-		if (!currentEmbedScript) {
-			return true;
-		}
-
-		return false;
-	}, [formType, currentEmbedScript]);
-
-	const onSuccess = useCallback(
-		(embedScript: EmbedObject) => {
-			widget.setProp('embed-script', JSON.stringify(embedScript));
-			setCurrentEmbedScript(embedScript);
-			previousFormTypeRef.current = formType ?? null;
-		},
-		[formType],
-	);
-
-	const { isLoading, error } = useFetchJobberForms({
-		formType: formType as 'request' | 'booking',
-		onSuccess,
-		shouldFetch,
+	const { isLoading, error, embedScript } = useFetchJobberForms({
+		formType: formType as FormType,
 	});
+
+	useEffect(() => {
+		if (embedScript) {
+			widget.setProp('embed-script', JSON.stringify(embedScript));
+		}
+	}, [embedScript]);
 
 	useEffect(() => {
 		widget
 			.getProp('form-type')
 			.then((formType) => {
 				setFormType(formType || 'request');
-				previousFormTypeRef.current = formType || null;
 			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
 	}, [setFormType]);
-
-	useEffect(() => {
-		widget
-			.getProp('embed-script')
-			.then((embedScript) => {
-				setCurrentEmbedScript(embedScript ? JSON.parse(embedScript) : null);
-			})
-			.catch((error) => console.error('Failed to fetch embed-script:', error));
-	}, [setCurrentEmbedScript]);
 
 	const handleFormTypeChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
@@ -94,7 +56,6 @@ const Panel: FC = () => {
 				'embed-script',
 				JSON.stringify({
 					markup: '',
-					styles: [],
 					scripts: [],
 				}),
 			);
@@ -152,7 +113,7 @@ const Panel: FC = () => {
 								</Text>
 							</div>
 						)}
-						{!isLoading && !error && currentEmbedScript && (
+						{!isLoading && !error && embedScript && (
 							<Text size="small" weight="normal">
 								Jobber form fetched successfully.
 							</Text>
