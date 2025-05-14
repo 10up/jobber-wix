@@ -77,7 +77,7 @@ const Panel: FC = () => {
 					<SidePanel.Footer noPadding>
 						<SectionHelper
 							fullWidth
-							appearance={error ? 'warning' : 'success'}
+							appearance={error && !isLoading ? 'warning' : 'success'}
 							border="topBottom"
 						>
 							{isLoading && (
@@ -105,7 +105,8 @@ const Panel: FC = () => {
 									}}
 								>
 									<Text size="small" weight="normal">
-										Error fetching Jobber form. Please try again.
+										Error fetching form. Please try again or check your
+										connection to Jobber.
 									</Text>
 								</div>
 							)}
