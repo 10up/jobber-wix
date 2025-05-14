@@ -26,10 +26,10 @@ const options = [
 ];
 
 const Panel: FC = () => {
-	const [formType, setFormType] = useState<string>();
+	const [formType, setFormType] = useState<FormType | null>(null);
 
 	const { isLoading, error, embedScript } = useFetchJobberForms({
-		formType: formType as FormType,
+		formType,
 	});
 
 	useEffect(() => {
@@ -42,7 +42,9 @@ const Panel: FC = () => {
 		widget
 			.getProp('form-type')
 			.then((formType) => {
-				setFormType(formType || 'request');
+				if (formType) {
+					setFormType(formType as FormType);
+				}
 			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
 	}, [setFormType]);
@@ -50,7 +52,7 @@ const Panel: FC = () => {
 	const handleFormTypeChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
 			const newFormType = option.id.toString();
-			setFormType(newFormType);
+			setFormType(newFormType as FormType);
 			widget.setProp('form-type', newFormType);
 			widget.setProp(
 				'embed-script',
@@ -78,48 +80,50 @@ const Panel: FC = () => {
 						</FormField>
 					</SidePanel.Field>
 				</SidePanel.Content>
-				<SidePanel.Footer noPadding>
-					<SectionHelper
-						fullWidth
-						appearance={error ? 'warning' : 'success'}
-						border="topBottom"
-					>
-						{isLoading && (
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									gap: '8px',
-								}}
-							>
-								<Loader size="tiny" />
+				{isLoading || error || embedScript.markup ? (
+					<SidePanel.Footer noPadding>
+						<SectionHelper
+							fullWidth
+							appearance={error ? 'warning' : 'success'}
+							border="topBottom"
+						>
+							{isLoading && (
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										gap: '8px',
+									}}
+								>
+									<Loader size="tiny" />
+									<Text size="small" weight="normal">
+										Fetching Jobber form...
+									</Text>
+								</div>
+							)}
+							{error && (
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										gap: '8px',
+									}}
+								>
+									<Text size="small" weight="normal">
+										Error fetching Jobber form. Please try again.
+									</Text>
+								</div>
+							)}
+							{!isLoading && !error && embedScript.markup && (
 								<Text size="small" weight="normal">
-									Fetching Jobber form...
+									Jobber form fetched successfully.
 								</Text>
-							</div>
-						)}
-						{error && (
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									gap: '8px',
-								}}
-							>
-								<Text size="small" weight="normal">
-									Error fetching Jobber form. Please try again.
-								</Text>
-							</div>
-						)}
-						{!isLoading && !error && embedScript && (
-							<Text size="small" weight="normal">
-								Jobber form fetched successfully.
-							</Text>
-						)}
-					</SectionHelper>
-				</SidePanel.Footer>
+							)}
+						</SectionHelper>
+					</SidePanel.Footer>
+				) : null}
 			</SidePanel>
 		</WixDesignSystemProvider>
 	);

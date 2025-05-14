@@ -28,7 +28,6 @@ const CustomElement: FC<Props> = ({
 
 		// Add markup
 		const markupContainer = shadowRoot.ownerDocument.createElement('div');
-		markupContainer.setAttribute('data-jobber-form-type', formType);
 		markupContainer.innerHTML = embedScript.markup;
 		container.appendChild(markupContainer);
 
@@ -80,7 +79,6 @@ const CustomElement: FC<Props> = ({
 
 const customElement = reactToWebComponent(CustomElement, React, ReactDOM as any, {
 	props: {
-		formType: 'string',
 		embedScript: 'json',
 	},
 	shadow: 'open',

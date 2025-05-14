@@ -1,4 +1,4 @@
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { createClient } from '@wix/sdk';
 import { editor, widget } from '@wix/editor';
 import { getMiddlewareUrl } from '../utils/api';
@@ -15,7 +15,7 @@ export type EmbedObject = {
 };
 
 type UseFetchJobberFormsProps = {
-	formType: FormType;
+	formType: FormType | null;
 };
 
 async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
@@ -43,13 +43,23 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 }
 
 export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
-	const { data, error, isLoading } = useSWR<EmbedObject>(formType ?? null, fetchJobberForm, {
-		shouldRetryOnError: false,
-	});
+	const { data, error, isLoading, isValidating } = useSWR<EmbedObject>(
+		formType,
+		fetchJobberForm,
+		{
+			revalidateOnFocus: false,
+			shouldRetryOnError: false,
+		},
+	);
+
+	const refetch = () => {
+		mutate(formType);
+	};
 
 	return {
 		embedScript: data ?? { markup: '', scripts: [] },
-		isLoading,
+		isLoading: isLoading || isValidating,
 		error,
+		refetch,
 	};
 }
