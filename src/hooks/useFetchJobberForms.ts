@@ -48,6 +48,8 @@ export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
 		fetchJobberForm,
 		{
 			revalidateOnFocus: false,
+			revalidateOnReconnect: false,
+			revalidateIfStale: false,
 			shouldRetryOnError: false,
 		},
 	);

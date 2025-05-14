@@ -54,13 +54,6 @@ const Panel: FC = () => {
 			const newFormType = option.id.toString();
 			setFormType(newFormType as FormType);
 			widget.setProp('form-type', newFormType);
-			widget.setProp(
-				'embed-script',
-				JSON.stringify({
-					markup: '',
-					scripts: [],
-				}),
-			);
 		},
 		[setFormType],
 	);
@@ -72,7 +65,7 @@ const Panel: FC = () => {
 					<SidePanel.Field>
 						<FormField label="Form Type">
 							<Dropdown
-								selectedId={formType}
+								selectedId={formType ?? undefined}
 								options={options}
 								onSelect={handleFormTypeChange}
 								aria-label="Form Type"
