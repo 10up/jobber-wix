@@ -23,7 +23,7 @@ type ConnectionButtonProps = {
 	isDisconnecting: boolean;
 	isButtonDisabled: boolean;
 	authUrl: string;
-	disconnect: () => void;
+	disconnect: (onDisconnect?: () => void) => Promise<void>;
 };
 
 const ConnectionButton: FC<ConnectionButtonProps> = ({
@@ -56,8 +56,9 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 	};
 
 	const handleConfirmDisconnect = async () => {
-		await disconnect();
-		setIsModalOpen(false);
+		disconnect(() => {
+			setIsModalOpen(false);
+		});
 	};
 
 	const getButtonText = () => {

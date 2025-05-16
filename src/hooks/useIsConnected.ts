@@ -6,12 +6,12 @@ import { getMiddlewareUrl } from '../utils/api';
 
 type Context = 'dashboard' | 'widget';
 
-interface UseIsConnectedResult {
+type UseIsConnectedResult = {
 	isConnected: boolean;
 	isLoading: boolean;
 	error: Error | null;
 	recheck: () => Promise<void>;
-}
+};
 
 export function useIsConnected(context: Context = 'dashboard'): UseIsConnectedResult {
 	const [isConnected, setIsConnected] = useState(false);
