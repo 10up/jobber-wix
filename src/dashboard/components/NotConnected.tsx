@@ -1,32 +1,43 @@
-import React, { type FC } from 'react';
-import { Box, Text, Button } from '@wix/design-system';
-import { Info as InfoIcon, Link as LinkIcon } from '@wix/wix-ui-icons-common';
+import React, { type FC, useState } from 'react';
+import { Box, Button, EmptyState } from '@wix/design-system';
+import { API as ApiIcon, Link as LinkIcon } from '@wix/wix-ui-icons-common';
 
 type NotConnectedProps = {
 	authUrl: string;
 	isButtonDisabled: boolean;
 };
 
-export const NotConnected: FC<NotConnectedProps> = ({ authUrl, isButtonDisabled }) => (
-	<>
-		<Box align="center" gap="12px" verticalAlign="middle">
-			<InfoIcon size="48px" color="#FAAD14" />
-			<Text size="medium" weight="normal">
-				Connect your Jobber account to be able to embed Jobber forms on your site.
-			</Text>
-		</Box>
-		<Text size="small" secondary>
-			This integration will allow you to embed Jobber forms on your site.
-		</Text>
-		<Button
-			as="a"
-			target="_blank"
-			href={authUrl}
-			prefixIcon={<LinkIcon />}
-			priority="primary"
-			disabled={isButtonDisabled}
+export const NotConnected: FC<NotConnectedProps> = ({ authUrl, isButtonDisabled }) => {
+	const [isRedirecting, setIsRedirecting] = useState(false);
+
+	const handleConnectClick = (e: React.MouseEvent) => {
+		if (window.top) {
+			e.preventDefault();
+			setIsRedirecting(true);
+			window.top.location.href = authUrl;
+		}
+	};
+
+	return (
+		<EmptyState
+			title="Connect Your Jobber Account"
+			subtitle="Connect your Jobber account to be able to embed Jobber forms on your site."
+			theme="page-no-border"
+			image={<ApiIcon size="48px" />}
 		>
-			Connect Jobber
-		</Button>
-	</>
-);
+			<Box direction="vertical" gap="12px" align="center">
+				<Button
+					as="a"
+					target="_blank"
+					href={authUrl}
+					prefixIcon={<LinkIcon />}
+					priority="primary"
+					disabled={isButtonDisabled || isRedirecting}
+					onClick={handleConnectClick}
+				>
+					{isRedirecting ? 'Redirecting you to Jobber...' : 'Connect to Jobber'}
+				</Button>
+			</Box>
+		</EmptyState>
+	);
+};

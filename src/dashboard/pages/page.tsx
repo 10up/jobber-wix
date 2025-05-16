@@ -9,6 +9,7 @@ import {
 	Loader,
 	Modal,
 	MessageModalLayout,
+	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import { Link as LinkIcon, Unlink as UnlinkIcon } from '@wix/wix-ui-icons-common';
@@ -33,6 +34,7 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 	disconnect,
 }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isRedirecting, setIsRedirecting] = useState(false);
 	let buttonIcon = <LinkIcon />;
 	let buttonText = 'Connect to Jobber';
 
@@ -45,24 +47,39 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 		setIsModalOpen(true);
 	};
 
+	const handleConnectClick = (e: React.MouseEvent) => {
+		if (window.top) {
+			e.preventDefault();
+			setIsRedirecting(true);
+			window.top.location.href = authUrl;
+		}
+	};
+
 	const handleConfirmDisconnect = async () => {
 		await disconnect();
 		setIsModalOpen(false);
 	};
 
+	const getButtonText = () => {
+		if (isConnected) {
+			return buttonText;
+		}
+		return isRedirecting ? 'Redirecting you to Jobber...' : buttonText;
+	};
+
 	return (
 		<>
 			<Button
-				onClick={isConnected ? handleDisconnectClick : undefined}
+				onClick={isConnected ? handleDisconnectClick : handleConnectClick}
 				as={!isConnected ? 'a' : undefined}
 				target={!isConnected ? '_blank' : undefined}
 				href={!isConnected ? authUrl : undefined}
 				priority={isConnected ? 'secondary' : 'primary'}
 				skin={isConnected ? 'destructive' : 'standard'}
 				prefixIcon={buttonIcon}
-				disabled={isButtonDisabled}
+				disabled={isButtonDisabled || isRedirecting}
 			>
-				{buttonText}
+				{getButtonText()}
 			</Button>
 
 			<Modal
@@ -72,7 +89,14 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 			>
 				<MessageModalLayout
 					title="Disconnect Jobber"
-					content="Are you sure you want to disconnect? This will remove the connection between your Wix site and Jobber."
+					content={
+						<Box direction="vertical" gap="12px">
+							<Text>Are you sure you want to disconnect?</Text>
+							<Text>
+								This will remove the connection between your Wix site and Jobber.
+							</Text>
+						</Box>
+					}
 					primaryButtonText={isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
 					secondaryButtonText="Cancel"
 					primaryButtonOnClick={handleConfirmDisconnect}
