@@ -1,11 +1,11 @@
 import React, { type FC } from 'react';
-import { Box, Text, Loader } from '@wix/design-system';
+import { EmptyState, Loader } from '@wix/design-system';
 
 export const Loading: FC = () => (
-	<Box align="center" gap="12px" verticalAlign="middle">
-		<Loader size="medium" />
-		<Text size="medium" weight="normal">
-			Checking your connection to Jobber...
-		</Text>
-	</Box>
+	<EmptyState
+		title="Checking your connection to Jobber..."
+		subtitle="Please wait while we check your connection..."
+		theme="page-no-border"
+		image={<Loader size="medium" />}
+	/>
 );
