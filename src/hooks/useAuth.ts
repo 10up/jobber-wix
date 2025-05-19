@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@wix/sdk';
 import { dashboard } from '@wix/dashboard';
 import { editor } from '@wix/editor';
+import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl, getAuthUrl } from '../utils/api';
 import { getAppInstanceFromUrl } from '../utils/wix';
 import pageMetadata from '../dashboard/pages/page.json';
 import { useIsConnected } from './useIsConnected';
-
-type Context = 'dashboard' | 'widget';
 
 type UseAuthResult = {
 	isConnected: boolean;
@@ -18,13 +17,13 @@ type UseAuthResult = {
 	disconnect: () => Promise<void>;
 };
 
-export function useAuth(context: Context = 'dashboard'): UseAuthResult {
+export function useAuth(): UseAuthResult {
 	const {
 		isConnected,
 		isLoading: isCheckingConnection,
 		error: connectionError,
 		recheck,
-	} = useIsConnected(context);
+	} = useIsConnected();
 	const [isDisconnecting, setIsDisconnecting] = useState(false);
 	const [authUrl, setAuthUrl] = useState('');
 	const [error, setError] = useState<Error | null>(null);
@@ -47,18 +46,15 @@ export function useAuth(context: Context = 'dashboard'): UseAuthResult {
 				setIsDisconnecting(true);
 				setError(null);
 
-				const client = createClient({
-					host: context === 'dashboard' ? dashboard.host() : editor.host(),
-					// @ts-expect-error
-					auth: context === 'dashboard' ? dashboard.auth() : editor.auth(),
-				});
-
-				const response = await client.fetchWithAuth(`${getMiddlewareUrl()}/disconnect`, {
-					method: 'POST',
-					headers: {
-						'x-jobber-integration': 'wix',
+				const response = await httpClient.fetchWithAuth(
+					`${getMiddlewareUrl()}/disconnect`,
+					{
+						method: 'POST',
+						headers: {
+							'x-jobber-integration': 'wix',
+						},
 					},
-				});
+				);
 
 				if (!response.ok) {
 					throw new Error('Failed to disconnect');
@@ -74,7 +70,7 @@ export function useAuth(context: Context = 'dashboard'): UseAuthResult {
 				setIsDisconnecting(false);
 			}
 		},
-		[context, recheck],
+		[recheck],
 	);
 
 	return {
