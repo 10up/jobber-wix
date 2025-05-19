@@ -1,19 +1,15 @@
 import { appInstances } from '@wix/app-management';
-import { auth } from '@wix/essentials';
+import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl } from '../../../utils/api';
 
-appInstances.onAppInstanceRemoved(async (data) => {
-	console.log(data);
+appInstances.onAppInstanceRemoved(async () => {
 	try {
-		console.log('appInstances.onAppInstanceRemoved');
-		const elevatedFetch = auth.elevate(fetch);
-		await elevatedFetch(`${getMiddlewareUrl()}/disconnect`, {
+		httpClient.fetchWithAuth(`${getMiddlewareUrl()}/disconnect`, {
 			method: 'POST',
 			headers: {
 				'x-jobber-integration': 'wix',
 			},
 		});
-		console.log('appInstances.onAppInstanceRemoved success');
 	} catch (error) {
 		console.error('Failed to disconnect during app removal:', error);
 	}
