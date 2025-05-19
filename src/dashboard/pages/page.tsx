@@ -1,19 +1,127 @@
-import React, { type FC } from 'react';
-import { Button, Page, WixDesignSystemProvider, Box, Layout, Cell } from '@wix/design-system';
+import React, { type FC, useState } from 'react';
+import {
+	Button,
+	Page,
+	WixDesignSystemProvider,
+	Box,
+	Layout,
+	Cell,
+	Loader,
+	Modal,
+	MessageModalLayout,
+	Text,
+} from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
-import { Link as LinkIcon } from '@wix/wix-ui-icons-common';
+import { Link as LinkIcon, Unlink as UnlinkIcon } from '@wix/wix-ui-icons-common';
 import { Loading } from '../components/Loading';
 import { NotConnected } from '../components/NotConnected';
 import { Connected } from '../components/Connected';
-import { useIsConnected } from '../../hooks/useIsConnected';
-import { useAuthorizationUrl } from '../../hooks/useAuthorizationUrl';
+import { useAuth } from '../../hooks/useAuth';
+
+type ConnectionButtonProps = {
+	isConnected: boolean;
+	isDisconnecting: boolean;
+	isButtonDisabled: boolean;
+	authUrl: string;
+	disconnect: (onDisconnect?: () => void) => Promise<void>;
+};
+
+const ConnectionButton: FC<ConnectionButtonProps> = ({
+	isConnected,
+	isDisconnecting,
+	isButtonDisabled,
+	authUrl,
+	disconnect,
+}) => {
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	let buttonIcon = <LinkIcon />;
+	let buttonText = 'Connect to Jobber';
+
+	if (isConnected) {
+		buttonIcon = <UnlinkIcon />;
+		buttonText = 'Disconnect';
+	}
+
+	const handleDisconnectClick = () => {
+		setIsModalOpen(true);
+	};
+
+	const handleConnectClick = (e: React.MouseEvent) => {
+		if (window.top) {
+			e.preventDefault();
+			setIsRedirecting(true);
+			window.top.location.href = authUrl;
+		}
+	};
+
+	const handleConfirmDisconnect = async () => {
+		disconnect(() => {
+			setIsModalOpen(false);
+		});
+	};
+
+	const getButtonText = () => {
+		if (isConnected) {
+			return buttonText;
+		}
+		return isRedirecting ? 'Redirecting you to Jobber...' : buttonText;
+	};
+
+	return (
+		<>
+			<Button
+				onClick={isConnected ? handleDisconnectClick : handleConnectClick}
+				as={!isConnected ? 'a' : undefined}
+				target={!isConnected ? '_blank' : undefined}
+				href={!isConnected ? authUrl : undefined}
+				priority={isConnected ? 'secondary' : 'primary'}
+				skin={isConnected ? 'destructive' : 'standard'}
+				prefixIcon={buttonIcon}
+				disabled={isButtonDisabled || isRedirecting}
+			>
+				{getButtonText()}
+			</Button>
+
+			<Modal
+				isOpen={isModalOpen}
+				onRequestClose={() => !isDisconnecting && setIsModalOpen(false)}
+				shouldCloseOnOverlayClick={!isDisconnecting}
+			>
+				<MessageModalLayout
+					title="Disconnect Jobber"
+					content={
+						<Box direction="vertical" gap="12px">
+							<Text>Are you sure you want to disconnect?</Text>
+							<Text>
+								This will remove the connection between your Wix site and Jobber.
+							</Text>
+						</Box>
+					}
+					primaryButtonText={isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+					secondaryButtonText="Cancel"
+					primaryButtonOnClick={handleConfirmDisconnect}
+					secondaryButtonOnClick={() => setIsModalOpen(false)}
+					theme="destructive"
+					secondaryButtonProps={{
+						disabled: isDisconnecting,
+					}}
+					primaryButtonProps={{
+						prefixIcon: isDisconnecting ? (
+							<Box paddingRight="6px">
+								<Loader size="tiny" />
+							</Box>
+						) : undefined,
+						disabled: isDisconnecting,
+					}}
+				/>
+			</Modal>
+		</>
+	);
+};
 
 const Index: FC = () => {
-	const { isConnected, isLoading } = useIsConnected();
-	const authUrl = useAuthorizationUrl();
-
-	const isAuthCheckLoading = isLoading || !authUrl;
-	const isButtonDisabled = isAuthCheckLoading || isConnected;
+	const { isConnected, isCheckingConnection, isDisconnecting, authUrl, disconnect } = useAuth();
 
 	return (
 		<WixDesignSystemProvider features={{ newColorsBranding: true }}>
@@ -22,28 +130,27 @@ const Index: FC = () => {
 					title="Jobber App"
 					subtitle="Manage your Jobber connection"
 					actionsBar={
-						<Button
-							as="a"
-							target="_blank"
-							href={authUrl}
-							priority="primary"
-							prefixIcon={<LinkIcon />}
-							disabled={isButtonDisabled}
-						>
-							{isConnected ? 'Connected' : 'Connect Jobber'}
-						</Button>
+						<Box gap="12px">
+							<ConnectionButton
+								isConnected={isConnected}
+								isDisconnecting={isDisconnecting}
+								isButtonDisabled={isCheckingConnection}
+								authUrl={authUrl}
+								disconnect={disconnect}
+							/>
+						</Box>
 					}
 				/>
 				<Page.Content>
 					<Layout>
 						<Cell>
 							<Box align="center" direction="vertical" gap="12px">
-								{isAuthCheckLoading ? <Loading /> : null}
-								{!isAuthCheckLoading && isConnected ? <Connected /> : null}
-								{!isAuthCheckLoading && !isConnected ? (
+								{isCheckingConnection ? <Loading /> : null}
+								{!isCheckingConnection && isConnected ? <Connected /> : null}
+								{!isCheckingConnection && !isConnected ? (
 									<NotConnected
 										authUrl={authUrl}
-										isButtonDisabled={isButtonDisabled}
+										isButtonDisabled={isCheckingConnection}
 									/>
 								) : null}
 							</Box>
