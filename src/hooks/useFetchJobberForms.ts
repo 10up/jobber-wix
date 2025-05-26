@@ -1,7 +1,6 @@
 import useSWR, { mutate } from 'swr';
 import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl } from '../utils/api';
-import { getInstance } from '../backend/get-instance.web';
 
 export type FormType = 'request' | 'booking';
 
@@ -18,9 +17,8 @@ type UseFetchJobberFormsProps = {
 };
 
 async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
-	const { site } = await getInstance();
 	const res = await httpClient.fetchWithAuth(
-		`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}&output=inline`,
+		`${getMiddlewareUrl()}/jobber/?query=${formType}&output=inline`,
 		{
 			headers: {
 				'x-jobber-integration': 'wix',
