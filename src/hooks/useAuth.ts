@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@wix/sdk';
 import { dashboard } from '@wix/dashboard';
-import { editor } from '@wix/editor';
 import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl, getAuthUrl } from '../utils/api';
 import { getAppInstanceFromUrl } from '../utils/wix';

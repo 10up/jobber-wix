@@ -68,6 +68,9 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 		return isRedirecting ? 'Redirecting you to Jobber...' : buttonText;
 	};
 
+	if (isConnected) {
+		return null;
+	}
 	return (
 		<>
 			<Button

@@ -1,12 +1,23 @@
 import React, { type FC } from 'react';
 import { Box, Text, EmptyState, Button } from '@wix/design-system';
 import { Check as CheckIcon, Edit as EditIcon } from '@wix/wix-ui-icons-common';
-import { editor } from '@wix/urls';
+import { httpClient } from '@wix/essentials';
 
 export const Connected: FC = () => {
 	const handleOpenEditor = async () => {
-		const response = await editor.getEditorUrls();
-		console.log(response);
+		const res = await httpClient.fetchWithAuth(
+			`https://www.wixapis.com/editor-urls/v2/editor-urls`,
+		);
+
+		const data = await res.json();
+
+		if (data?.urls?.editor_url) {
+			if (window.top) {
+				window.top.location.href = data.urls.editor_url;
+			} else {
+				window.location.href = data.urls.editor_url;
+			}
+		}
 	};
 
 	return (

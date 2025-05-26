@@ -1,6 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { createClient } from '@wix/sdk';
-import { editor, widget } from '@wix/editor';
+import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl } from '../utils/api';
 import { getInstance } from '../backend/get-instance.web';
 
@@ -19,15 +18,8 @@ type UseFetchJobberFormsProps = {
 };
 
 async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
-	const client = createClient({
-		host: editor.host(),
-		auth: editor.auth(),
-		modules: {
-			widget,
-		},
-	});
 	const { site } = await getInstance();
-	const res = await client.fetchWithAuth(
+	const res = await httpClient.fetchWithAuth(
 		`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}&output=inline`,
 		{
 			headers: {
@@ -36,8 +28,19 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 		},
 	);
 	const data = await res.json();
+
+	if (data.error) {
+		if (data.error.includes('Invalid Token')) {
+			throw new Error(
+				'Your site is not connected to jobber. Go to Jobber Dashboard page to connect your wix site to Jobber',
+			);
+		}
+		throw new Error(data.error);
+	}
 	if (!data.markup) {
-		throw new Error('No embed script found');
+		throw new Error(
+			'Error fetching form. Please try again or check your connection to Jobber.',
+		);
 	}
 	return data;
 }

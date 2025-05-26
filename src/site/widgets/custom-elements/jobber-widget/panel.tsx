@@ -105,8 +105,7 @@ const Panel: FC = () => {
 									}}
 								>
 									<Text size="small" weight="normal">
-										Error fetching form. Please try again or check your
-										connection to Jobber.
+										{error.message}
 									</Text>
 								</div>
 							)}
