@@ -178,6 +178,17 @@ const Index: FC = () => {
 										<br />
 										The forms must be created and customized in your Jobber
 										dashboard.
+										<br />
+										<br />
+										Don&apos;t have a Jobber account?{' '}
+										<a
+											href="https://getjobber.com/signup"
+											target="_blank"
+											rel="noopener noreferrer"
+											style={{ color: '#3899EC', textDecoration: 'none' }}
+										>
+											Create one here
+										</a>
 									</Text>
 								</Card.Content>
 							</Card>
