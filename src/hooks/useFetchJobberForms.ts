@@ -30,7 +30,7 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 	if (data.error) {
 		if (data.error.includes('Invalid Token')) {
 			throw new Error(
-				'Your site is not connected to jobber. Go to Jobber Dashboard page to connect your wix site to Jobber',
+				'Your site is not connected to Jobber. Go to the Jobber Dashboard page to connect your Wix site to Jobber',
 			);
 		}
 		throw new Error(data.error);
