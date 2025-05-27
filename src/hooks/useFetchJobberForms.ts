@@ -45,7 +45,7 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 
 export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
 	const { data, error, isLoading, isValidating } = useSWR<EmbedObject>(
-		formType,
+		formType != null ? formType : null,
 		fetchJobberForm,
 		{
 			revalidateOnFocus: false,

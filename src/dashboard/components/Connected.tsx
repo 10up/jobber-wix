@@ -1,11 +1,13 @@
-import React, { type FC } from 'react';
+import React, { useState, type FC } from 'react';
 import { Box, Text, EmptyState, Button } from '@wix/design-system';
 import { Edit as EditIcon } from '@wix/wix-ui-icons-common';
 import { httpClient } from '@wix/essentials';
 import jobberIcon from '../../assets/jobber-widget/jobber-icon.png';
 
 export const Connected: FC = () => {
+	const [isOpening, setIsOpening] = useState(false);
 	const handleOpenEditor = async () => {
+		setIsOpening(true);
 		const res = await httpClient.fetchWithAuth(`${import.meta.env.BASE_API_URL}/editor-url`);
 
 		const data = await res.json();
@@ -42,12 +44,17 @@ export const Connected: FC = () => {
 							2. Add the Jobber Forms widget to your page
 						</Text>
 						<Text size="small" secondary>
-							3. Configure the form settings in the widget
+							3. Select the form you want to embed in the widget&apos;s settings panel
 						</Text>
 					</Box>
 				</Box>
-				<Button prefixIcon={<EditIcon />} priority="secondary" onClick={handleOpenEditor}>
-					Open Site Editor
+				<Button
+					prefixIcon={<EditIcon />}
+					priority="secondary"
+					onClick={handleOpenEditor}
+					disabled={isOpening}
+				>
+					{isOpening ? 'Opening Site Editor...' : 'Open Site Editor'}
 				</Button>
 			</Box>
 		</EmptyState>

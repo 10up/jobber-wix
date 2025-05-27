@@ -33,7 +33,7 @@ const Panel: FC = () => {
 	});
 
 	useEffect(() => {
-		if (embedScript) {
+		if (embedScript.markup.length > 0) {
 			widget.setProp('embed-script', JSON.stringify(embedScript));
 		}
 	}, [embedScript]);
