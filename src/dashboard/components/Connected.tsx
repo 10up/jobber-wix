@@ -1,7 +1,8 @@
 import React, { type FC } from 'react';
 import { Box, Text, EmptyState, Button } from '@wix/design-system';
-import { Check as CheckIcon, Edit as EditIcon } from '@wix/wix-ui-icons-common';
+import { Edit as EditIcon } from '@wix/wix-ui-icons-common';
 import { httpClient } from '@wix/essentials';
+import jobberIcon from '../../assets/jobber-widget/jobber-icon.png';
 
 export const Connected: FC = () => {
 	const handleOpenEditor = async () => {
@@ -23,7 +24,7 @@ export const Connected: FC = () => {
 			title="Successfully Connected to Jobber"
 			subtitle="Your Jobber account is now connected to your Wix site."
 			theme="page-no-border"
-			image={<CheckIcon size="48px" color="#389E0D" />}
+			image={<img src={jobberIcon} width="48" height="48" alt="Jobber icon" />}
 		>
 			<Box direction="vertical" gap="24px" align="center">
 				<Box direction="vertical" gap="12px" align="center">
