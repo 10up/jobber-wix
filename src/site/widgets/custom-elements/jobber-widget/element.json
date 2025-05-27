@@ -1,7 +1,7 @@
 {
   "$schema": "https://dev.wix.com/wix-cli/schemas/custom-element.json",
   "id": "26960905-9e80-45c5-ab06-d9dec6d687df",
-  "name": "Jobber",
+  "name": "Jobber Forms",
   "width": {
     "defaultWidth": 450,
     "allowStretch": true

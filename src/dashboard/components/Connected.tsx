@@ -5,17 +5,15 @@ import { httpClient } from '@wix/essentials';
 
 export const Connected: FC = () => {
 	const handleOpenEditor = async () => {
-		const res = await httpClient.fetchWithAuth(
-			`https://www.wixapis.com/editor-urls/v2/editor-urls`,
-		);
+		const res = await httpClient.fetchWithAuth(`${import.meta.env.BASE_API_URL}/editor-url`);
 
 		const data = await res.json();
 
-		if (data?.urls?.editor_url) {
+		if (data?.urls?.editorUrl) {
 			if (window.top) {
-				window.top.location.href = data.urls.editor_url;
+				window.top.location.href = data.urls.editorUrl;
 			} else {
-				window.location.href = data.urls.editor_url;
+				window.location.href = data.urls.editorUrl;
 			}
 		}
 	};
