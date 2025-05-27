@@ -1,8 +1,6 @@
 import useSWR, { mutate } from 'swr';
-import { createClient } from '@wix/sdk';
-import { editor, widget } from '@wix/editor';
+import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl } from '../utils/api';
-import { getInstance } from '../backend/get-instance.web';
 
 export type FormType = 'request' | 'booking';
 
@@ -19,16 +17,8 @@ type UseFetchJobberFormsProps = {
 };
 
 async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
-	const client = createClient({
-		host: editor.host(),
-		auth: editor.auth(),
-		modules: {
-			widget,
-		},
-	});
-	const { site } = await getInstance();
-	const res = await client.fetchWithAuth(
-		`${getMiddlewareUrl()}/jobber/?clientUrl=${site?.siteId!}&query=${formType}&output=inline`,
+	const res = await httpClient.fetchWithAuth(
+		`${getMiddlewareUrl()}/jobber/?query=${formType}&output=inline`,
 		{
 			headers: {
 				'x-jobber-integration': 'wix',
@@ -36,15 +26,26 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 		},
 	);
 	const data = await res.json();
+
+	if (data.error) {
+		if (data.error.includes('Invalid Token')) {
+			throw new Error(
+				'Your site is not connected to Jobber. Go to the Jobber Dashboard page to connect your Wix site to Jobber',
+			);
+		}
+		throw new Error(data.error);
+	}
 	if (!data.markup) {
-		throw new Error('No embed script found');
+		throw new Error(
+			'Error fetching form. Please try again or check your connection to Jobber.',
+		);
 	}
 	return data;
 }
 
 export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
 	const { data, error, isLoading, isValidating } = useSWR<EmbedObject>(
-		formType,
+		formType != null ? formType : null,
 		fetchJobberForm,
 		{
 			revalidateOnFocus: false,

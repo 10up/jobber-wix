@@ -33,7 +33,7 @@ const Panel: FC = () => {
 	});
 
 	useEffect(() => {
-		if (embedScript) {
+		if (embedScript.markup.length > 0) {
 			widget.setProp('embed-script', JSON.stringify(embedScript));
 		}
 	}, [embedScript]);
@@ -105,8 +105,7 @@ const Panel: FC = () => {
 									}}
 								>
 									<Text size="small" weight="normal">
-										Error fetching form. Please try again or check your
-										connection to Jobber.
+										{error.message}
 									</Text>
 								</div>
 							)}

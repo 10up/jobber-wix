@@ -1,6 +1,7 @@
 import React, { type FC, useState } from 'react';
 import { Box, Button, EmptyState } from '@wix/design-system';
-import { API as ApiIcon, Link as LinkIcon } from '@wix/wix-ui-icons-common';
+import { Link as LinkIcon } from '@wix/wix-ui-icons-common';
+import jobberIcon from '../../assets/jobber-widget/jobber-icon.png';
 
 type NotConnectedProps = {
 	authUrl: string;
@@ -23,7 +24,7 @@ export const NotConnected: FC<NotConnectedProps> = ({ authUrl, isButtonDisabled 
 			title="Connect Your Jobber Account"
 			subtitle="Connect your Jobber account to be able to embed Jobber forms on your site."
 			theme="page-no-border"
-			image={<ApiIcon size="48px" />}
+			image={<img src={jobberIcon} width="48" height="48" alt="Jobber icon" />}
 		>
 			<Box direction="vertical" gap="12px" align="center">
 				<Button

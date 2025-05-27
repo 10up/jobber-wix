@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@wix/sdk';
-import { dashboard } from '@wix/dashboard';
-import { editor } from '@wix/editor';
+import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl } from '../utils/api';
-
-type Context = 'dashboard' | 'widget';
 
 type UseIsConnectedResult = {
 	isConnected: boolean;
@@ -13,7 +9,7 @@ type UseIsConnectedResult = {
 	recheck: () => Promise<void>;
 };
 
-export function useIsConnected(context: Context = 'dashboard'): UseIsConnectedResult {
+export function useIsConnected(): UseIsConnectedResult {
 	const [isConnected, setIsConnected] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
@@ -23,13 +19,7 @@ export function useIsConnected(context: Context = 'dashboard'): UseIsConnectedRe
 			setIsLoading(true);
 			setError(null);
 
-			const client = createClient({
-				host: context === 'dashboard' ? dashboard.host() : editor.host(),
-				// @ts-expect-error
-				auth: context === 'dashboard' ? dashboard.auth() : editor.auth(),
-			});
-
-			const response = await client.fetchWithAuth(`${getMiddlewareUrl()}/wix/auth-check`);
+			const response = await httpClient.fetchWithAuth(`${getMiddlewareUrl()}/wix/auth-check`);
 			const data = await response.json();
 
 			setIsConnected(data.success);
@@ -39,7 +29,7 @@ export function useIsConnected(context: Context = 'dashboard'): UseIsConnectedRe
 		} finally {
 			setIsLoading(false);
 		}
-	}, [context]);
+	}, []);
 
 	useEffect(() => {
 		checkConnection();

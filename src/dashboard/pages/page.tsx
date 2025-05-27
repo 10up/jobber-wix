@@ -10,6 +10,7 @@ import {
 	Modal,
 	MessageModalLayout,
 	Text,
+	Card,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import { Link as LinkIcon, Unlink as UnlinkIcon } from '@wix/wix-ui-icons-common';
@@ -17,6 +18,7 @@ import { Loading } from '../components/Loading';
 import { NotConnected } from '../components/NotConnected';
 import { Connected } from '../components/Connected';
 import { useAuth } from '../../hooks/useAuth';
+import thumbnail from '../../assets/jobber-widget/thumbnail.png';
 
 type ConnectionButtonProps = {
 	isConnected: boolean;
@@ -26,6 +28,8 @@ type ConnectionButtonProps = {
 	disconnect: (onDisconnect?: () => void) => Promise<void>;
 };
 
+// leaving this here for now, but we don't need it
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ConnectionButton: FC<ConnectionButtonProps> = ({
 	isConnected,
 	isDisconnecting,
@@ -68,6 +72,9 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 		return isRedirecting ? 'Redirecting you to Jobber...' : buttonText;
 	};
 
+	if (isConnected) {
+		return null;
+	}
 	return (
 		<>
 			<Button
@@ -121,39 +128,70 @@ const ConnectionButton: FC<ConnectionButtonProps> = ({
 };
 
 const Index: FC = () => {
-	const { isConnected, isCheckingConnection, isDisconnecting, authUrl, disconnect } = useAuth();
+	const { isConnected, isCheckingConnection, authUrl } = useAuth();
 
 	return (
 		<WixDesignSystemProvider features={{ newColorsBranding: true }}>
 			<Page>
 				<Page.Header
-					title="Jobber App"
-					subtitle="Manage your Jobber connection"
-					actionsBar={
-						<Box gap="12px">
-							<ConnectionButton
-								isConnected={isConnected}
-								isDisconnecting={isDisconnecting}
-								isButtonDisabled={isCheckingConnection}
-								authUrl={authUrl}
-								disconnect={disconnect}
+					title={
+						<Box gap="12px" align="center">
+							<img
+								src={thumbnail}
+								alt="Jobber Logo"
+								style={{ height: '64px', width: 'auto' }}
 							/>
 						</Box>
 					}
 				/>
 				<Page.Content>
 					<Layout>
-						<Cell>
-							<Box align="center" direction="vertical" gap="12px">
-								{isCheckingConnection ? <Loading /> : null}
-								{!isCheckingConnection && isConnected ? <Connected /> : null}
-								{!isCheckingConnection && !isConnected ? (
-									<NotConnected
-										authUrl={authUrl}
-										isButtonDisabled={isCheckingConnection}
-									/>
-								) : null}
-							</Box>
+						<Cell span={8}>
+							<Card>
+								<Card.Header title="Connection Status" />
+								<Card.Divider />
+								<Card.Content>
+									<Box align="center" direction="vertical">
+										{isCheckingConnection ? <Loading /> : null}
+										{!isCheckingConnection && isConnected ? (
+											<Connected />
+										) : null}
+										{!isCheckingConnection && !isConnected ? (
+											<NotConnected
+												authUrl={authUrl}
+												isButtonDisabled={isCheckingConnection}
+											/>
+										) : null}
+									</Box>
+								</Card.Content>
+							</Card>
+						</Cell>
+						<Cell span={4}>
+							<Card>
+								<Card.Header title="About" />
+								<Card.Divider />
+								<Card.Content>
+									<Text>
+										The Jobber Wix App allows you to embed Request and Booking
+										forms.
+										<br />
+										<br />
+										The forms must be created and customized in your Jobber
+										dashboard.
+										<br />
+										<br />
+										Don&apos;t have a Jobber account?{' '}
+										<a
+											href="https://getjobber.com/signup"
+											target="_blank"
+											rel="noopener noreferrer"
+											style={{ color: '#3899EC', textDecoration: 'none' }}
+										>
+											Create one here
+										</a>
+									</Text>
+								</Card.Content>
+							</Card>
 						</Cell>
 					</Layout>
 				</Page.Content>
