@@ -69,6 +69,7 @@ const Panel: FC = () => {
 								options={options}
 								onSelect={handleFormTypeChange}
 								aria-label="Form Type"
+								placeholder="Select a form to display"
 							/>
 						</FormField>
 					</SidePanel.Field>
