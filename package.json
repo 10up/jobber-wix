@@ -13,6 +13,7 @@
     "@wix/urls": "^1.0.45",
     "@wix/web-methods": "^1.0.6",
     "@wix/wix-ui-icons-common": "^3.0.0",
+    "@wix/site-window": "^1.38.0",
     "react-to-webcomponent": "^2.0.0",
     "swr": "^2.3.3"
   },

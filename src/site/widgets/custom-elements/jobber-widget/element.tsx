@@ -1,6 +1,7 @@
-import React, { useEffect, type FC, useRef } from 'react';
+import React, { useEffect, type FC, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import reactToWebComponent from 'react-to-webcomponent';
+import { window as w } from '@wix/site-window';
 import styles from './element.module.css';
 import { type EmbedObject } from '../../../../hooks/useFetchJobberForms';
 import NoMarkup from './no-markup';
@@ -14,6 +15,18 @@ const CustomElement: FC<Props> = ({
 	formType = 'request',
 	embedScript = { markup: '', scripts: [] },
 }) => {
+	const [viewMode, setViewMode] = useState<'Preview' | 'Site' | 'Editor'>('Site');
+
+	useEffect(() => {
+		w.viewMode()
+			.then((mode) => {
+				setViewMode(mode as 'Preview' | 'Site' | 'Editor');
+			})
+			.catch((error) => {
+				console.error('Error getting view mode:', error);
+			});
+	}, []);
+
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -74,6 +87,9 @@ const CustomElement: FC<Props> = ({
 	}, [embedScript, formType]);
 
 	if (!embedScript.markup) {
+		if (viewMode === 'Site' || viewMode === 'Preview') {
+			return null;
+		}
 		return <NoMarkup />;
 	}
 
