@@ -52,7 +52,11 @@ const Panel: FC = () => {
 			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
 
-		widget.setProp('id', `jobber-widget-${uuidv4()}`);
+		widget.getProp('id').then((id) => {
+			if (!id) {
+				widget.setProp('id', `jobber-widget-${uuidv4()}`);
+			}
+		});
 	}, [setFormType]);
 
 	const handleFormTypeChange = useCallback(

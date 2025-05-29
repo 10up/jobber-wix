@@ -41,7 +41,6 @@ const CustomElement: FC<Props> = ({
 
 		if (!embedScript.markup || !id) return undefined;
 
-		console.log('useEffect', id, formType, embedScript);
 		// Get the shadow root from the container
 		const shadowRoot = container.getRootNode() as ShadowRoot;
 		if (!shadowRoot) return undefined;
@@ -91,14 +90,12 @@ const CustomElement: FC<Props> = ({
 	}, [embedScript, formType, id]);
 
 	if (!embedScript.markup || !id) {
-		console.log('no markup or id', embedScript.markup, id);
 		if (viewMode === 'Site' || viewMode === 'Preview') {
 			return null;
 		}
 		return <NoMarkup />;
 	}
 
-	console.log('rendering', id, formType, embedScript);
 	return <div ref={containerRef} className={styles.root} />;
 };
 
