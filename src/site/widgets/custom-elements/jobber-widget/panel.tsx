@@ -12,6 +12,8 @@ import {
 	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
+import { v4 as uuidv4 } from 'uuid';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
 
 const options = [
@@ -32,13 +34,13 @@ const Panel: FC = () => {
 		formType,
 	});
 
-	const serializedEmbedScript = embedScript ? JSON.stringify(embedScript) : '';
-
-	useEffect(() => {
-		if (serializedEmbedScript.length > 0) {
-			widget.setProp('embed-script', serializedEmbedScript);
+	useDeepCompareEffect(() => {
+		if (embedScript.markup.length > 0) {
+			widget.setProp('embed-script', JSON.stringify(embedScript)).then(() => {
+				console.log('setting embed-script', embedScript);
+			});
 		}
-	}, [serializedEmbedScript]);
+	}, [embedScript]);
 
 	useEffect(() => {
 		widget
@@ -49,13 +51,16 @@ const Panel: FC = () => {
 				}
 			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
+
+		widget.setProp('id', `jobber-widget-${uuidv4()}`);
 	}, [setFormType]);
 
 	const handleFormTypeChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
 			const newFormType = option.id.toString();
-			setFormType(newFormType as FormType);
-			widget.setProp('form-type', newFormType);
+			widget.setProp('form-type', newFormType).then(() => {
+				setFormType(newFormType as FormType);
+			});
 		},
 		[setFormType],
 	);
@@ -76,7 +81,7 @@ const Panel: FC = () => {
 						</FormField>
 					</SidePanel.Field>
 				</SidePanel.Content>
-				{isLoading || error || embedScript ? (
+				{isLoading || error || embedScript.markup.length > 0 ? (
 					<SidePanel.Footer noPadding>
 						<SectionHelper
 							fullWidth
@@ -112,7 +117,7 @@ const Panel: FC = () => {
 									</Text>
 								</div>
 							)}
-							{!isLoading && !error && embedScript && (
+							{!isLoading && !error && embedScript.markup.length > 0 && (
 								<Text size="small" weight="normal">
 									Jobber form fetched successfully.
 								</Text>

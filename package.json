@@ -16,7 +16,8 @@
     "@wix/wix-ui-icons-common": "^3.0.0",
     "react-to-webcomponent": "^2.0.0",
     "swr": "^2.3.3",
-    "use-deep-compare-effect": "^1.8.1"
+    "use-deep-compare-effect": "^1.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@10up/eslint-config": "^4.1.2",

@@ -10,11 +10,13 @@ import NoMarkup from './no-markup';
 interface Props {
 	formType?: 'request' | 'booking';
 	embedScript?: EmbedObject;
+	id?: string;
 }
 
 const CustomElement: FC<Props> = ({
 	formType = 'request',
 	embedScript = { markup: '', scripts: [] },
+	id = undefined,
 }) => {
 	const [viewMode, setViewMode] = useState<'Preview' | 'Site' | 'Editor'>('Site');
 
@@ -37,8 +39,9 @@ const CustomElement: FC<Props> = ({
 
 		container.innerHTML = '';
 
-		if (!embedScript.markup) return undefined;
+		if (!embedScript.markup || !id) return undefined;
 
+		console.log('useEffect', id, formType, embedScript);
 		// Get the shadow root from the container
 		const shadowRoot = container.getRootNode() as ShadowRoot;
 		if (!shadowRoot) return undefined;
@@ -85,15 +88,17 @@ const CustomElement: FC<Props> = ({
 				container.innerHTML = '';
 			}
 		};
-	}, [embedScript, formType]);
+	}, [embedScript, formType, id]);
 
-	if (!embedScript.markup) {
+	if (!embedScript.markup || !id) {
+		console.log('no markup or id', embedScript.markup, id);
 		if (viewMode === 'Site' || viewMode === 'Preview') {
 			return null;
 		}
 		return <NoMarkup />;
 	}
 
+	console.log('rendering', id, formType, embedScript);
 	return <div ref={containerRef} className={styles.root} />;
 };
 
@@ -101,6 +106,7 @@ const customElement = reactToWebComponent(CustomElement, React, ReactDOM as any,
 	props: {
 		embedScript: 'json',
 		formType: 'string',
+		id: 'string',
 	},
 	shadow: 'open',
 });

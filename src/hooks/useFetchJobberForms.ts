@@ -60,7 +60,7 @@ export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
 	};
 
 	return {
-		embedScript: data ?? null,
+		embedScript: data ?? { id: '', markup: '', scripts: [] },
 		isLoading: isLoading || isValidating,
 		error,
 		refetch,
