@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { dashboard } from '@wix/dashboard';
 import { getAuthUrl } from '../utils/api';
 import { getAppInstanceFromUrl } from '../utils/wix';
-import pageMetadata from '../dashboard/pages/page.json';
+import pageMetadata from '../dashboard/pages/settings/page.json';
 
 async function getAuthorizationUrl() {
 	const instance = getAppInstanceFromUrl();

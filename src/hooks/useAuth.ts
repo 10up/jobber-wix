@@ -3,7 +3,7 @@ import { dashboard } from '@wix/dashboard';
 import { httpClient } from '@wix/essentials';
 import { getMiddlewareUrl, getAuthUrl } from '../utils/api';
 import { getAppInstanceFromUrl } from '../utils/wix';
-import pageMetadata from '../dashboard/pages/page.json';
+import pageMetadata from '../dashboard/pages/settings/page.json';
 import { useIsConnected } from './useIsConnected';
 
 type UseAuthResult = {
