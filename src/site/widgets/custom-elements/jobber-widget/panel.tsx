@@ -36,9 +36,7 @@ const Panel: FC = () => {
 
 	useDeepCompareEffect(() => {
 		if (embedScript.markup.length > 0) {
-			widget.setProp('embed-script', JSON.stringify(embedScript)).then(() => {
-				console.log('setting embed-script', embedScript);
-			});
+			widget.setProp('embed-script', JSON.stringify(embedScript));
 		}
 	}, [embedScript]);
 

@@ -55,7 +55,7 @@ const CustomElement: FC<Props> = ({
 			// Wrap the script to provide shadow DOM context by patching the document object
 			const s = `
 				(function() {
-					var shadowRoot = document.querySelector('jobber-widget').shadowRoot;
+					var shadowRoot = document.querySelector('jobber-widget[id="${id}"]').shadowRoot;
 					shadowRoot.currentScript = shadowRoot.querySelector('script');
 					shadowRoot.createElement = function(...args) {
 						return shadowRoot.ownerDocument.createElement(...args);
