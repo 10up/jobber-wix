@@ -2,6 +2,7 @@ import React, { useEffect, type FC, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import reactToWebComponent from 'react-to-webcomponent';
 import { window as w } from '@wix/site-window';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import styles from './element.module.css';
 import { type EmbedObject } from '../../../../hooks/useFetchJobberForms';
 import NoMarkup from './no-markup';
@@ -29,7 +30,7 @@ const CustomElement: FC<Props> = ({
 
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	useEffect(() => {
+	useDeepCompareEffect(() => {
 		const container = containerRef.current;
 
 		if (!container) return undefined;
@@ -99,6 +100,7 @@ const CustomElement: FC<Props> = ({
 const customElement = reactToWebComponent(CustomElement, React, ReactDOM as any, {
 	props: {
 		embedScript: 'json',
+		formType: 'string',
 	},
 	shadow: 'open',
 });

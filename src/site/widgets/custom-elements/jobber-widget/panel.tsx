@@ -32,11 +32,13 @@ const Panel: FC = () => {
 		formType,
 	});
 
+	const serializedEmbedScript = embedScript ? JSON.stringify(embedScript) : '';
+
 	useEffect(() => {
-		if (embedScript.markup.length > 0) {
-			widget.setProp('embed-script', JSON.stringify(embedScript));
+		if (serializedEmbedScript.length > 0) {
+			widget.setProp('embed-script', serializedEmbedScript);
 		}
-	}, [embedScript]);
+	}, [serializedEmbedScript]);
 
 	useEffect(() => {
 		widget
@@ -74,7 +76,7 @@ const Panel: FC = () => {
 						</FormField>
 					</SidePanel.Field>
 				</SidePanel.Content>
-				{isLoading || error || embedScript.markup ? (
+				{isLoading || error || embedScript ? (
 					<SidePanel.Footer noPadding>
 						<SectionHelper
 							fullWidth
@@ -110,7 +112,7 @@ const Panel: FC = () => {
 									</Text>
 								</div>
 							)}
-							{!isLoading && !error && embedScript.markup && (
+							{!isLoading && !error && embedScript && (
 								<Text size="small" weight="normal">
 									Jobber form fetched successfully.
 								</Text>
