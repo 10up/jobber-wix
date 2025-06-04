@@ -22,8 +22,7 @@ const NoMarkup: React.FC = () => (
 				textAlign: 'center',
 			}}
 		>
-			To embed a jobber form, open settings (double click the widget) and select which form
-			you want to embed.
+			To embed a Jobber form, open settings and select which form you want to embed.
 		</p>
 	</div>
 );

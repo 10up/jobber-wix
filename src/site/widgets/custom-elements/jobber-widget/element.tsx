@@ -1,6 +1,8 @@
-import React, { useEffect, type FC, useRef } from 'react';
+import React, { useEffect, type FC, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import reactToWebComponent from 'react-to-webcomponent';
+import { window as w } from '@wix/site-window';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import styles from './element.module.css';
 import { type EmbedObject } from '../../../../hooks/useFetchJobberForms';
 import NoMarkup from './no-markup';
@@ -8,22 +10,36 @@ import NoMarkup from './no-markup';
 interface Props {
 	formType?: 'request' | 'booking';
 	embedScript?: EmbedObject;
+	id?: string;
 }
 
 const CustomElement: FC<Props> = ({
 	formType = 'request',
 	embedScript = { markup: '', scripts: [] },
+	id = undefined,
 }) => {
-	const containerRef = useRef<HTMLDivElement>(null);
+	const [viewMode, setViewMode] = useState<'Preview' | 'Site' | 'Editor'>('Site');
 
 	useEffect(() => {
+		w.viewMode()
+			.then((mode) => {
+				setViewMode(mode as 'Preview' | 'Site' | 'Editor');
+			})
+			.catch((error) => {
+				console.error('Error getting view mode:', error);
+			});
+	}, []);
+
+	const containerRef = useRef<HTMLDivElement>(null);
+
+	useDeepCompareEffect(() => {
 		const container = containerRef.current;
 
 		if (!container) return undefined;
 
 		container.innerHTML = '';
 
-		if (!embedScript.markup) return undefined;
+		if (!embedScript.markup || !id) return undefined;
 
 		// Get the shadow root from the container
 		const shadowRoot = container.getRootNode() as ShadowRoot;
@@ -39,7 +55,7 @@ const CustomElement: FC<Props> = ({
 			// Wrap the script to provide shadow DOM context by patching the document object
 			const s = `
 				(function() {
-					var shadowRoot = document.querySelector('jobber-widget').shadowRoot;
+					var shadowRoot = document.querySelector('jobber-widget[id="${id}"]').shadowRoot;
 					shadowRoot.currentScript = shadowRoot.querySelector('script');
 					shadowRoot.createElement = function(...args) {
 						return shadowRoot.ownerDocument.createElement(...args);
@@ -71,9 +87,12 @@ const CustomElement: FC<Props> = ({
 				container.innerHTML = '';
 			}
 		};
-	}, [embedScript, formType]);
+	}, [embedScript, formType, id]);
 
-	if (!embedScript.markup) {
+	if (!embedScript.markup || !id) {
+		if (viewMode === 'Site' || viewMode === 'Preview') {
+			return null;
+		}
 		return <NoMarkup />;
 	}
 
@@ -83,6 +102,8 @@ const CustomElement: FC<Props> = ({
 const customElement = reactToWebComponent(CustomElement, React, ReactDOM as any, {
 	props: {
 		embedScript: 'json',
+		formType: 'string',
+		id: 'string',
 	},
 	shadow: 'open',
 });

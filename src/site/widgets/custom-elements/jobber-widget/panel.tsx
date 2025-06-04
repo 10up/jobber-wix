@@ -12,6 +12,8 @@ import {
 	Text,
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
+import { v4 as uuidv4 } from 'uuid';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
 
 const options = [
@@ -32,7 +34,7 @@ const Panel: FC = () => {
 		formType,
 	});
 
-	useEffect(() => {
+	useDeepCompareEffect(() => {
 		if (embedScript.markup.length > 0) {
 			widget.setProp('embed-script', JSON.stringify(embedScript));
 		}
@@ -47,13 +49,20 @@ const Panel: FC = () => {
 				}
 			})
 			.catch((error) => console.error('Failed to fetch form-type:', error));
+
+		widget.getProp('id').then((id) => {
+			if (!id) {
+				widget.setProp('id', `jobber-widget-${uuidv4()}`);
+			}
+		});
 	}, [setFormType]);
 
 	const handleFormTypeChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
 			const newFormType = option.id.toString();
-			setFormType(newFormType as FormType);
-			widget.setProp('form-type', newFormType);
+			widget.setProp('form-type', newFormType).then(() => {
+				setFormType(newFormType as FormType);
+			});
 		},
 		[setFormType],
 	);
@@ -69,11 +78,12 @@ const Panel: FC = () => {
 								options={options}
 								onSelect={handleFormTypeChange}
 								aria-label="Form Type"
+								placeholder="Select a form to display"
 							/>
 						</FormField>
 					</SidePanel.Field>
 				</SidePanel.Content>
-				{isLoading || error || embedScript.markup ? (
+				{isLoading || error || embedScript.markup.length > 0 ? (
 					<SidePanel.Footer noPadding>
 						<SectionHelper
 							fullWidth
@@ -109,7 +119,7 @@ const Panel: FC = () => {
 									</Text>
 								</div>
 							)}
-							{!isLoading && !error && embedScript.markup && (
+							{!isLoading && !error && embedScript.markup.length > 0 && (
 								<Text size="small" weight="normal">
 									Jobber form fetched successfully.
 								</Text>
