@@ -1,5 +1,6 @@
 {
   "$schema": "https://dev.wix.com/wix-cli/schemas/dashboard-page.json",
   "id": "2b8b12d1-88a3-41e1-bd8e-c67c6a774b7b",
-  "title": "Jobber"
+  "title": "Jobber",
+  "additionalRoutes": [ "/settings", "/"]
 }

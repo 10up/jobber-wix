@@ -14,11 +14,11 @@ import {
 } from '@wix/design-system';
 import '@wix/design-system/styles.global.css';
 import { Link as LinkIcon, Unlink as UnlinkIcon } from '@wix/wix-ui-icons-common';
-import { Loading } from '../../components/Loading';
-import { NotConnected } from '../../components/NotConnected';
-import { Connected } from '../../components/Connected';
-import { useAuth } from '../../../hooks/useAuth';
-import thumbnail from '../../../assets/jobber-widget/thumbnail.png';
+import { Loading } from '../components/Loading';
+import { NotConnected } from '../components/NotConnected';
+import { Connected } from '../components/Connected';
+import { useAuth } from '../../hooks/useAuth';
+import thumbnail from '../../assets/jobber-widget/thumbnail.png';
 
 type ConnectionButtonProps = {
 	isConnected: boolean;
