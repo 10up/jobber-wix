@@ -11,6 +11,7 @@ import {
 	Loader,
 	Text,
 } from '@wix/design-system';
+
 import '@wix/design-system/styles.global.css';
 import { v4 as uuidv4 } from 'uuid';
 import useDeepCompareEffect from 'use-deep-compare-effect';

@@ -45,6 +45,7 @@ export const Connected: FC = () => {
 						</Text>
 						<Text size="small" secondary>
 							3. Select the form you want to embed in the widget&apos;s settings panel
+							and publish.
 						</Text>
 					</Box>
 				</Box>
