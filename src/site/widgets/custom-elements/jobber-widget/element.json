@@ -11,7 +11,7 @@
 
   },
   "installation": {
-    "autoAddToSite": false
+    "autoAddToSite": true
   },
   "behaviors": {
     "dashboard": {
