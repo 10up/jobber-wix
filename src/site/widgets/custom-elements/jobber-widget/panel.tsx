@@ -98,9 +98,9 @@ const Panel: FC = () => {
 							<Box direction="vertical" gap="12px" align="center">
 								<Text size="small" weight="normal" align="center">
 									Your site is not connected to Jobber. In order to connect your
-									Wix site to Jobber, you can either click on &quot;Manage&quot;
-									button or press the button below to go to Jobber&apos;s
-									Dashboard
+									Wix site to Jobber, you can either click on the
+									&quot;Manage&quot; button of this widget or go to Jobber&apos;s
+									Dashboard to connect Jobber.
 								</Text>
 								<Button
 									priority="primary"
