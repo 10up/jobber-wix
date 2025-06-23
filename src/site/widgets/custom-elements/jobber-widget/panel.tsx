@@ -10,11 +10,16 @@ import {
 	DropdownLayoutValueOption,
 	Loader,
 	Text,
+	Button,
+	Box,
 } from '@wix/design-system';
+
 import '@wix/design-system/styles.global.css';
 import { v4 as uuidv4 } from 'uuid';
 import useDeepCompareEffect from 'use-deep-compare-effect';
 import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
+import pageMetadata from '../../../../dashboard/pages/page.json';
+import { getInstance } from '../../../../backend/get-app-instance.web';
 
 const options = [
 	{
@@ -29,6 +34,8 @@ const options = [
 
 const Panel: FC = () => {
 	const [formType, setFormType] = useState<FormType | null>(null);
+	const [dashboardUrl, setDashboardUrl] = useState('');
+	const [isNavigating, setIsNavigating] = useState(false);
 
 	const { isLoading, error, embedScript } = useFetchJobberForms({
 		formType,
@@ -55,6 +62,10 @@ const Panel: FC = () => {
 				widget.setProp('id', `jobber-widget-${uuidv4()}`);
 			}
 		});
+
+		getInstance().then(({ site }) => {
+			setDashboardUrl(`https://manage.wix.com/dashboard/${site?.siteId}/${pageMetadata.id}`);
+		});
 	}, [setFormType]);
 
 	const handleFormTypeChange = useCallback(
@@ -67,20 +78,49 @@ const Panel: FC = () => {
 		[setFormType],
 	);
 
+	const handleNavigateToDashboard = useCallback(() => {
+		if (dashboardUrl) {
+			setIsNavigating(true);
+			if (window.top) {
+				window.top.location.href = dashboardUrl;
+			} else {
+				window.location.href = dashboardUrl;
+			}
+		}
+	}, [dashboardUrl]);
+
 	return (
 		<WixDesignSystemProvider>
 			<SidePanel width="300" height="100vh">
 				<SidePanel.Content noPadding stretchVertically>
 					<SidePanel.Field>
-						<FormField label="Form Type">
-							<Dropdown
-								selectedId={formType ?? undefined}
-								options={options}
-								onSelect={handleFormTypeChange}
-								aria-label="Form Type"
-								placeholder="Select a form to display"
-							/>
-						</FormField>
+						{error?.cause === 'not-connected' ? (
+							<Box direction="vertical" gap="12px" align="center">
+								<Text size="small" weight="normal" align="center">
+									Your site is not connected to Jobber. In order to connect your
+									Wix site to Jobber, you can either click on the
+									&quot;Manage&quot; button of this widget or go to Jobber&apos;s
+									Dashboard to connect Jobber.
+								</Text>
+								<Button
+									priority="primary"
+									onClick={handleNavigateToDashboard}
+									disabled={!dashboardUrl || isNavigating}
+								>
+									{isNavigating ? 'Opening Dashboard...' : 'Go to Dashboard'}
+								</Button>
+							</Box>
+						) : (
+							<FormField label="Form Type">
+								<Dropdown
+									selectedId={formType ?? undefined}
+									options={options}
+									onSelect={handleFormTypeChange}
+									aria-label="Form Type"
+									placeholder="Select a form to display"
+								/>
+							</FormField>
+						)}
 					</SidePanel.Field>
 				</SidePanel.Content>
 				{isLoading || error || embedScript.markup.length > 0 ? (

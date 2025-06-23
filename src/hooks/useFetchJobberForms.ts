@@ -1,5 +1,6 @@
 import useSWR, { mutate } from 'swr';
 import { httpClient } from '@wix/essentials';
+
 import { getMiddlewareUrl } from '../utils/api';
 
 export type FormType = 'request' | 'booking';
@@ -28,10 +29,11 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 	const data = await res.json();
 
 	if (data.error) {
-		if (data.error.includes('Invalid Token')) {
-			throw new Error(
-				'Your site is not connected to Jobber. Go to the Jobber Dashboard page to connect your Wix site to Jobber',
-			);
+		if (
+			data.error.includes('Invalid Token') ||
+			data.error.includes('Failed to make request to Jobber API')
+		) {
+			throw new Error(`Your site is not connected to Jobber.`, { cause: 'not-connected' });
 		}
 		throw new Error(data.error);
 	}
