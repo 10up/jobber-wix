@@ -97,17 +97,15 @@ const Panel: FC = () => {
 						{error?.cause === 'not-connected' ? (
 							<Box direction="vertical" gap="12px" align="center">
 								<Text size="small" weight="normal" align="center">
-									Your site is not connected to Jobber. In order to connect your
-									Wix site to Jobber, you can either click on the
-									&quot;Manage&quot; button of this widget or go to Jobber&apos;s
-									Dashboard to connect Jobber.
+									Connect your Jobber account, then go to Settings to select the
+									relevant form.
 								</Text>
 								<Button
 									priority="primary"
 									onClick={handleNavigateToDashboard}
 									disabled={!dashboardUrl || isNavigating}
 								>
-									{isNavigating ? 'Opening Dashboard...' : 'Go to Dashboard'}
+									{isNavigating ? 'Opening Dashboard...' : 'Connect to Jobber'}
 								</Button>
 							</Box>
 						) : (
