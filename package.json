@@ -10,6 +10,7 @@
     "@wix/editor": "^1.354.0",
     "@wix/essentials": "^0.1.19",
     "@wix/sdk": "^1.15.20",
+    "@wix/sdk-react": "^1.0.0",
     "@wix/site-window": "^1.38.0",
     "@wix/urls": "^1.0.45",
     "@wix/web-methods": "^1.0.6",

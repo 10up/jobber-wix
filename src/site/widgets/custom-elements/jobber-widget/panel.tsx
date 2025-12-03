@@ -1,6 +1,6 @@
 import React, { type FC, useState, useEffect, useCallback } from 'react';
 
-import { widget } from '@wix/editor';
+import { editor, widget } from '@wix/editor';
 import {
 	SidePanel,
 	WixDesignSystemProvider,
@@ -17,6 +17,8 @@ import {
 import '@wix/design-system/styles.global.css';
 import { v4 as uuidv4 } from 'uuid';
 import useDeepCompareEffect from 'use-deep-compare-effect';
+import { WixProvider } from '@wix/sdk-react';
+import { window as w } from '@wix/site-window';
 import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
 import pageMetadata from '../../../../dashboard/pages/page.json';
 import { getInstance } from '../../../../backend/get-app-instance.web';
@@ -91,81 +93,85 @@ const Panel: FC = () => {
 
 	return (
 		<WixDesignSystemProvider>
-			<SidePanel width="300" height="100vh">
-				<SidePanel.Content noPadding stretchVertically>
-					<SidePanel.Field>
-						{error?.cause === 'not-connected' ? (
-							<Box direction="vertical" gap="12px" align="center">
-								<Text size="small" weight="normal" align="center">
-									Connect your Jobber account, then go to Settings to select the
-									relevant form.
-								</Text>
-								<Button
-									priority="primary"
-									onClick={handleNavigateToDashboard}
-									disabled={!dashboardUrl || isNavigating}
-								>
-									{isNavigating ? 'Opening Dashboard...' : 'Connect to Jobber'}
-								</Button>
-							</Box>
-						) : (
-							<FormField label="Form Type">
-								<Dropdown
-									selectedId={formType ?? undefined}
-									options={options}
-									onSelect={handleFormTypeChange}
-									aria-label="Form Type"
-									placeholder="Select a form to display"
-								/>
-							</FormField>
-						)}
-					</SidePanel.Field>
-				</SidePanel.Content>
-				{isLoading || error || embedScript.markup.length > 0 ? (
-					<SidePanel.Footer noPadding>
-						<SectionHelper
-							fullWidth
-							appearance={error && !isLoading ? 'warning' : 'success'}
-							border="topBottom"
-						>
-							{isLoading && (
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										gap: '8px',
-									}}
-								>
-									<Loader size="tiny" />
-									<Text size="small" weight="normal">
-										Fetching Jobber form...
+			<WixProvider host={editor.host()} auth={editor.auth()}>
+				<SidePanel width="300" height="100vh">
+					<SidePanel.Content noPadding stretchVertically>
+						<SidePanel.Field>
+							{error?.cause === 'not-connected' ? (
+								<Box direction="vertical" gap="12px" align="center">
+									<Text size="small" weight="normal" align="center">
+										Connect your Jobber account, then go to Settings to select
+										the relevant form.
 									</Text>
-								</div>
+									<Button
+										priority="primary"
+										onClick={handleNavigateToDashboard}
+										disabled={!dashboardUrl || isNavigating}
+									>
+										{isNavigating
+											? 'Opening Dashboard...'
+											: 'Connect to Jobber'}
+									</Button>
+								</Box>
+							) : (
+								<FormField label="Form Type">
+									<Dropdown
+										selectedId={formType ?? undefined}
+										options={options}
+										onSelect={handleFormTypeChange}
+										aria-label="Form Type"
+										placeholder="Select a form to display"
+									/>
+								</FormField>
 							)}
-							{error && !isLoading && (
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										gap: '8px',
-									}}
-								>
+						</SidePanel.Field>
+					</SidePanel.Content>
+					{isLoading || error || embedScript.markup.length > 0 ? (
+						<SidePanel.Footer noPadding>
+							<SectionHelper
+								fullWidth
+								appearance={error && !isLoading ? 'warning' : 'success'}
+								border="topBottom"
+							>
+								{isLoading && (
+									<div
+										style={{
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											gap: '8px',
+										}}
+									>
+										<Loader size="tiny" />
+										<Text size="small" weight="normal">
+											Fetching Jobber form...
+										</Text>
+									</div>
+								)}
+								{error && !isLoading && (
+									<div
+										style={{
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											gap: '8px',
+										}}
+									>
+										<Text size="small" weight="normal">
+											{error.message}
+										</Text>
+									</div>
+								)}
+								{!isLoading && !error && embedScript.markup.length > 0 && (
 									<Text size="small" weight="normal">
-										{error.message}
+										Jobber form fetched successfully.
 									</Text>
-								</div>
-							)}
-							{!isLoading && !error && embedScript.markup.length > 0 && (
-								<Text size="small" weight="normal">
-									Jobber form fetched successfully.
-								</Text>
-							)}
-						</SectionHelper>
-					</SidePanel.Footer>
-				) : null}
-			</SidePanel>
+								)}
+							</SectionHelper>
+						</SidePanel.Footer>
+					) : null}
+				</SidePanel>
+			</WixProvider>
 		</WixDesignSystemProvider>
 	);
 };

@@ -34,7 +34,8 @@ const NoMarkup: React.FC = () => (
 				textAlign: 'center',
 			}}
 		>
-			To embed a Jobber form, open settings and select which form you want to embed.
+			To embed a Jobber form, connect your Jobber account, go to settings and select which
+			form you want to embed.
 		</p>
 	</div>
 );
