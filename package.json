@@ -11,7 +11,7 @@
     "@wix/essentials": "^0.1.19",
     "@wix/sdk": "^1.15.20",
     "@wix/site-window": "^1.38.0",
-    "@wix/urls": "^1.0.45",
+    "@wix/urls": "^1.0.63",
     "@wix/web-methods": "^1.0.6",
     "@wix/wix-ui-icons-common": "^3.0.0",
     "react-to-webcomponent": "^2.0.0",

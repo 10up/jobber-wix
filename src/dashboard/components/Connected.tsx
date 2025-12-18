@@ -8,6 +8,7 @@ export const Connected: FC = () => {
 	const [isOpening, setIsOpening] = useState(false);
 	const handleOpenEditor = async () => {
 		setIsOpening(true);
+
 		const res = await httpClient.fetchWithAuth(`${import.meta.env.BASE_API_URL}/editor-url`);
 
 		const data = await res.json();
