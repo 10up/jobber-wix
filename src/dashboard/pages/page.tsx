@@ -182,7 +182,7 @@ const Index: FC = () => {
 										<br />
 										Don&apos;t have a Jobber account?{' '}
 										<a
-											href="https://getjobber.com/signup"
+											href="https://www.getjobber.com/plp/wix/"
 											target="_blank"
 											rel="noopener noreferrer"
 											style={{ color: '#3899EC', textDecoration: 'none' }}
