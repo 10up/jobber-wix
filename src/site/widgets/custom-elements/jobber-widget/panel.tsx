@@ -97,10 +97,9 @@ const Panel: FC = () => {
 						{error?.cause === 'not-connected' ? (
 							<Box direction="vertical" gap="12px" align="center">
 								<Text size="small" weight="normal" align="center">
-									Your site is not connected to Jobber. In order to connect your
-									Wix site to Jobber, you can either click on the
-									&quot;Manage&quot; button of this widget or go to Jobber&apos;s
-									Dashboard to connect Jobber.
+									Your Wix site isn&apos;t connected to Jobber. Click &apos;Go to
+									Dashboard&apos; to connect your Jobber account, or click the
+									&apos;Manage&apos; button on this widget.
 								</Text>
 								<Button
 									priority="primary"
