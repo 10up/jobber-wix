@@ -32,6 +32,20 @@ const CustomElement: FC<Props> = ({
 
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	useEffect(() => {
+		const handleMessage = (e: MessageEvent) => {
+			if (e.data === 'scrolltop') {
+				const shadowRoot = containerRef.current?.getRootNode() as ShadowRoot;
+				shadowRoot?.host?.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start',
+				});
+			}
+		};
+		window.addEventListener('message', handleMessage);
+		return () => window.removeEventListener('message', handleMessage);
+	}, []);
+
 	useDeepCompareEffect(() => {
 		const container = containerRef.current;
 
