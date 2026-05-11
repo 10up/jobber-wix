@@ -1,0 +1,27 @@
+{
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["eslint", "!biome", "..."],
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
+    },
+    "TSX": {
+      "language_servers": ["eslint", "!biome", "..."],
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
+    },
+    "JavaScript": {
+      "language_servers": ["eslint", "!biome", "..."],
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
+    }
+  },
+  "formatter": {
+    "language_server": {
+      "name": "eslint"
+    }
+  }
+}
