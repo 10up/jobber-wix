@@ -36,9 +36,13 @@ const CustomElement: FC<Props> = ({
 		const handleMessage = (e: MessageEvent) => {
 			if (e.data === 'scrolltop') {
 				const shadowRoot = containerRef.current?.getRootNode() as ShadowRoot;
-				shadowRoot?.host?.scrollIntoView({
-					behavior: 'smooth',
-					block: 'start',
+				const host = shadowRoot?.host;
+				if (!host) return;
+				requestAnimationFrame(() => {
+					const rect = host.getBoundingClientRect();
+					w.scrollBy(0, rect.top).catch(() => {
+						host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					});
 				});
 			}
 		};
