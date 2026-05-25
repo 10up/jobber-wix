@@ -78,7 +78,9 @@ const CustomElement: FC<Props> = ({
 					shadowRoot.createElement = function(...args) {
 						return shadowRoot.ownerDocument.createElement(...args);
 					};
-					${scriptContent.content.replaceAll('document.', 'shadowRoot.')}
+					${scriptContent.content
+						.replaceAll('document.', 'shadowRoot.')
+						.replaceAll('.scrollTo(', '?.scrollTo?.(')}
 				})();
 			`;
 
