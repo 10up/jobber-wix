@@ -3,6 +3,10 @@ import { httpClient } from '@wix/essentials';
 
 import { getMiddlewareUrl } from '../utils/api';
 
+/**
+ * The form types a widget could be saved with before forms were listed per account.
+ * Kept only so widgets saved in that shape can still be recognised.
+ */
 export type FormType = 'request' | 'booking';
 
 export type EmbedObject = {
@@ -13,19 +17,41 @@ export type EmbedObject = {
 	}>;
 };
 
-type UseFetchJobberFormsProps = {
-	formType: FormType | null;
+/**
+ * What a Jobber form creates when submitted: a request only, a job, or a request with an assessment.
+ */
+export type JobberFormBookingType = 'NONE' | 'JOB' | 'ASSESSMENT';
+
+/**
+ * A form from the account's form list, with its embed processed for the shadow DOM.
+ */
+export type JobberForm = {
+	id: string;
+	name: string;
+	default: boolean;
+	bookingType: JobberFormBookingType;
+	embedScript: string;
+	url: string;
+	embedUrl: string;
+	inline: EmbedObject;
 };
 
-async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
-	const res = await httpClient.fetchWithAuth(
-		`${getMiddlewareUrl()}/jobber/?query=${formType}&output=inline`,
-		{
-			headers: {
-				'x-jobber-integration': 'wix',
-			},
+const FORMS_KEY = 'jobber-forms';
+
+/**
+ * Fetch every enabled form on the connected Jobber account.
+ *
+ * The widget renders inside a shadow DOM, so each form comes back with its
+ * embed script already processed into markup and inline script contents.
+ *
+ * @returns {Promise<JobberForm[]>} The account's forms
+ */
+async function fetchJobberForms(): Promise<JobberForm[]> {
+	const res = await httpClient.fetchWithAuth(`${getMiddlewareUrl()}/jobber/forms?output=inline`, {
+		headers: {
+			'x-jobber-integration': 'wix',
 		},
-	);
+	});
 	const data = await res.json();
 
 	if (data.error) {
@@ -37,18 +63,25 @@ async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
 		}
 		throw new Error(data.error);
 	}
-	if (!data.markup) {
+
+	if (!Array.isArray(data.forms)) {
 		throw new Error(
-			'Error fetching form. Please try again or check your connection to Jobber.',
+			'Error fetching forms. Please try again or check your connection to Jobber.',
 		);
 	}
-	return data;
+
+	return data.forms;
 }
 
-export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
-	const { data, error, isLoading, isValidating } = useSWR<EmbedObject>(
-		formType ?? null,
-		fetchJobberForm,
+/**
+ * The connected account's forms, fetched once per panel session.
+ *
+ * @returns The forms, loading and error state, and a refetch function
+ */
+export function useJobberForms() {
+	const { data, error, isLoading, isValidating } = useSWR<JobberForm[]>(
+		FORMS_KEY,
+		fetchJobberForms,
 		{
 			revalidateOnFocus: false,
 			revalidateOnReconnect: false,
@@ -58,11 +91,11 @@ export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
 	);
 
 	const refetch = () => {
-		mutate(formType);
+		mutate(FORMS_KEY);
 	};
 
 	return {
-		embedScript: data ?? { markup: '', scripts: [] },
+		forms: data ?? [],
 		isLoading: isLoading || isValidating,
 		error,
 		refetch,
