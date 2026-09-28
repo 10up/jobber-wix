@@ -172,7 +172,7 @@ const Index: FC = () => {
 								<Card.Divider />
 								<Card.Content>
 									<Text>
-										The Jobber Wix App allows you to embed Request and Booking
+										The Jobber Wix App allows you to embed any of your Jobber
 										forms.
 										<br />
 										<br />
