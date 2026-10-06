@@ -7,6 +7,52 @@ import styles from './element.module.css';
 import { type EmbedObject } from '../../../../hooks/useFetchJobberForms';
 import NoMarkup from './no-markup';
 
+const HEIGHT_MESSAGE = /^\d+(\.\d+)?px$/;
+const frameHeights = new Map<HTMLIFrameElement, string>();
+let resizeHandlerInstalled = false;
+
+/**
+ * Resize each widget's form to its own height.
+ *
+ * Jobber's embed script resizes its form on every height message, whichever form sent
+ * it, so with several widgets on one page they all end up at the last reported height.
+ * One shared handler matches each message to the iframe that sent it, and stops Jobber's
+ * handlers from applying it to the other widgets. It is registered on first mount, so it
+ * runs before Jobber's handlers, which are only added once each form has loaded.
+ */
+const installResizeHandler = () => {
+	if (resizeHandlerInstalled) return;
+	resizeHandlerInstalled = true;
+
+	window.addEventListener('message', (e: MessageEvent) => {
+		if (typeof e.data !== 'string' || !HEIGHT_MESSAGE.test(e.data)) return;
+
+		const frames = Array.from(document.querySelectorAll('jobber-widget')).flatMap((widget) =>
+			Array.from(
+				widget.shadowRoot?.querySelectorAll<HTMLIFrameElement>(
+					'iframe.jobber-work-request',
+				) ?? [],
+			),
+		);
+		const source = frames.find((frame) => frame.contentWindow === e.source);
+
+		if (!source) return;
+
+		frameHeights.set(source, e.data);
+
+		frameHeights.forEach((height, frame) => {
+			if (!frame.isConnected) {
+				frameHeights.delete(frame);
+				return;
+			}
+			frame.style.height = height;
+			if (frame.parentElement) frame.parentElement.style.height = height;
+		});
+
+		e.stopImmediatePropagation();
+	});
+};
+
 interface Props {
 	formType?: 'request' | 'booking';
 	embedScript?: EmbedObject;
@@ -31,6 +77,10 @@ const CustomElement: FC<Props> = ({
 	}, []);
 
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		installResizeHandler();
+	}, []);
 
 	useEffect(() => {
 		const handleMessage = (e: MessageEvent) => {
