@@ -231,6 +231,16 @@ const Panel: FC = () => {
 					onSelect={handleFormChange}
 					aria-label="Form"
 					placeholder="Select a form to display"
+					// The list is attached inside the panel's scrolling area by default, which
+					// cuts it off after one option, so attach it to the panel window instead.
+					popoverProps={{
+						appendTo: 'window',
+						flip: false,
+						fixed: true,
+						placement: 'bottom',
+						width: '100%',
+						minWidth: 192,
+					}}
 				/>
 			</FormField>
 		);
