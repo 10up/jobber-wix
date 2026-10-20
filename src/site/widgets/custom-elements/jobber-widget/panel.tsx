@@ -154,7 +154,11 @@ const Panel: FC = () => {
 			return storeError;
 		}
 		if (needsRepick) {
-			return 'Jobber no longer separates booking and request forms. Choose which form this widget should display.';
+			return [
+				'This widget was set up with an older version of the Jobber app. The form still works on your site.',
+				'Forms are now listed by the names they have in Jobber, and you can build your own. Find and create forms in Jobber under Settings, Requests and Bookings, then select one from the Form list.',
+				'If you do nothing, this widget keeps showing the same form.',
+			].join('\n\n');
 		}
 		if (fellBackToDefault) {
 			return 'The selected form is no longer available, so visitors now see your default form. Choose another form if you prefer.';
@@ -232,7 +236,9 @@ const Panel: FC = () => {
 								<Text size="small" weight="normal">
 									{isLoading && 'Fetching your Jobber forms...'}
 									{!isLoading && error && error.message}
-									{!isLoading && !error && notice}
+									{!isLoading && !error && notice && (
+										<span style={{ whiteSpace: 'pre-line' }}>{notice}</span>
+									)}
 									{!isLoading &&
 										!error &&
 										!notice &&
