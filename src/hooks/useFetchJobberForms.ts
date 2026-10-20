@@ -3,6 +3,10 @@ import { httpClient } from '@wix/essentials';
 
 import { getMiddlewareUrl } from '../utils/api';
 
+/**
+ * The form types a widget could be saved with before forms were listed per account.
+ * Kept only so widgets saved in that shape can still be recognised.
+ */
 export type FormType = 'request' | 'booking';
 
 export type EmbedObject = {
@@ -92,62 +96,6 @@ export function useJobberForms() {
 
 	return {
 		forms: data ?? [],
-		isLoading: isLoading || isValidating,
-		error,
-		refetch,
-	};
-}
-
-type UseFetchJobberFormsProps = {
-	formType: FormType | null;
-};
-
-async function fetchJobberForm(formType: FormType): Promise<EmbedObject> {
-	const res = await httpClient.fetchWithAuth(
-		`${getMiddlewareUrl()}/jobber/?query=${formType}&output=inline`,
-		{
-			headers: {
-				'x-jobber-integration': 'wix',
-			},
-		},
-	);
-	const data = await res.json();
-
-	if (data.error) {
-		if (
-			data.error.includes('Invalid Token') ||
-			data.error.includes('Failed to make request to Jobber API')
-		) {
-			throw new Error(`Your site is not connected to Jobber.`, { cause: 'not-connected' });
-		}
-		throw new Error(data.error);
-	}
-	if (!data.markup) {
-		throw new Error(
-			'Error fetching form. Please try again or check your connection to Jobber.',
-		);
-	}
-	return data;
-}
-
-export function useFetchJobberForms({ formType }: UseFetchJobberFormsProps) {
-	const { data, error, isLoading, isValidating } = useSWR<EmbedObject>(
-		formType ?? null,
-		fetchJobberForm,
-		{
-			revalidateOnFocus: false,
-			revalidateOnReconnect: false,
-			revalidateIfStale: false,
-			shouldRetryOnError: false,
-		},
-	);
-
-	const refetch = () => {
-		mutate(formType);
-	};
-
-	return {
-		embedScript: data ?? { markup: '', scripts: [] },
 		isLoading: isLoading || isValidating,
 		error,
 		refetch,
