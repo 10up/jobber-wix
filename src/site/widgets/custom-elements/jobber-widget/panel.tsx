@@ -97,6 +97,14 @@ const Panel: FC = () => {
 		selectForm(preferred);
 	}, [propsLoaded, formId, legacyFormType, forms, selectForm]);
 
+	// Refresh the stored copy each time the panel opens, so edits made to the form in
+	// Jobber reach the live widget. Without this the widget keeps its original snapshot.
+	useEffect(() => {
+		if (selectedForm) {
+			storeForm(selectedForm);
+		}
+	}, [selectedForm]);
+
 	const options = useMemo(
 		() =>
 			forms.map((form) => ({
