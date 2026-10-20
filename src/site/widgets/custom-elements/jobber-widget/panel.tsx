@@ -44,6 +44,8 @@ const Panel: FC = () => {
 	const [legacyFormType, setLegacyFormType] = useState<string | null>(null);
 	const [propsLoaded, setPropsLoaded] = useState(false);
 	const [storeError, setStoreError] = useState<string | null>(null);
+	// True once a widget whose form was turned off or deleted in Jobber is moved to the default.
+	const [fellBackToDefault, setFellBackToDefault] = useState(false);
 	const [dashboardUrl, setDashboardUrl] = useState('');
 	const [isNavigating, setIsNavigating] = useState(false);
 
@@ -97,6 +99,18 @@ const Panel: FC = () => {
 		selectForm(preferred);
 	}, [propsLoaded, formId, legacyFormType, forms, selectForm]);
 
+	// The saved form was turned off or deleted in Jobber. Switch the widget to the account
+	// default, so visitors see a working form rather than Jobber's "form not found" page.
+	useEffect(() => {
+		if (!selectionMissing) {
+			return;
+		}
+		const defaultForm = forms.find((form) => form.default);
+		if (defaultForm) {
+			selectForm(defaultForm).then(() => setFellBackToDefault(true));
+		}
+	}, [selectionMissing, forms, selectForm]);
+
 	// Refresh the stored copy each time the panel opens, so edits made to the form in
 	// Jobber reach the live widget. Without this the widget keeps its original snapshot.
 	useEffect(() => {
@@ -141,6 +155,9 @@ const Panel: FC = () => {
 		}
 		if (needsRepick) {
 			return 'Jobber no longer separates booking and request forms. Choose which form this widget should display.';
+		}
+		if (fellBackToDefault) {
+			return 'The selected form is no longer available, so visitors now see your default form. Choose another form if you prefer.';
 		}
 		if (selectionMissing) {
 			return 'The selected form is no longer available. Choose another form.';
