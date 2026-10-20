@@ -1,4 +1,4 @@
-import React, { type FC, useState, useEffect, useCallback } from 'react';
+import React, { type FC, useState, useEffect, useCallback, useMemo } from 'react';
 
 import { widget } from '@wix/editor';
 import {
@@ -16,66 +16,151 @@ import {
 
 import '@wix/design-system/styles.global.css';
 import { v4 as uuidv4 } from 'uuid';
-import useDeepCompareEffect from 'use-deep-compare-effect';
-import { useFetchJobberForms, type FormType } from '../../../../hooks/useFetchJobberForms';
+import {
+	useJobberForms,
+	type EmbedObject,
+	type JobberForm,
+} from '../../../../hooks/useFetchJobberForms';
 import pageMetadata from '../../../../dashboard/pages/page.json';
 import { getInstance } from '../../../../backend/get-app-instance.web';
 
-const options = [
-	{
-		id: 'request',
-		value: 'Request',
-	},
-	{
-		id: 'booking',
-		value: 'Booking',
-	},
-];
+/**
+ * Store a form on the widget: its processed embed, which is what the site widget
+ * renders, with the form's id alongside it to remember the choice.
+ *
+ * The id lives inside the embed prop rather than a prop of its own because Wix only
+ * kept the first value written to a new prop and ignored later changes.
+ *
+ * @param form The form to store
+ * @returns {Promise<boolean>} False when the form's embed could not be processed
+ */
+async function storeForm(form: JobberForm): Promise<boolean> {
+	// Never replace a working embed with an empty one.
+	if (!form.inline?.markup) {
+		return false;
+	}
+
+	await widget.setProp('embed-script', JSON.stringify({ ...form.inline, formId: form.id }));
+	return true;
+}
+
+/**
+ * Read the chosen form's id back from the stored embed.
+ *
+ * @param savedEmbed The widget's embed-script prop
+ * @returns {string | null} The form id, or null when none was stored
+ */
+function getSavedFormId(savedEmbed: unknown): string | null {
+	try {
+		const embed: EmbedObject =
+			typeof savedEmbed === 'string' ? JSON.parse(savedEmbed) : (savedEmbed as EmbedObject);
+		return embed?.formId || null;
+	} catch {
+		return null;
+	}
+}
 
 const Panel: FC = () => {
-	const [formType, setFormType] = useState<FormType | null>(null);
+	const [formId, setFormId] = useState<string | null>(null);
+	// A widget saved before forms were listed per account has a form type and no form id.
+	const [legacyFormType, setLegacyFormType] = useState<string | null>(null);
+	const [propsLoaded, setPropsLoaded] = useState(false);
+	const [storeError, setStoreError] = useState<string | null>(null);
+	// True once a widget whose form was turned off or deleted in Jobber is moved to the default.
+	const [fellBackToDefault, setFellBackToDefault] = useState(false);
 	const [dashboardUrl, setDashboardUrl] = useState('');
 	const [isNavigating, setIsNavigating] = useState(false);
 
-	const { isLoading, error, embedScript } = useFetchJobberForms({
-		formType,
-	});
-
-	useDeepCompareEffect(() => {
-		if (embedScript.markup.length > 0) {
-			widget.setProp('embed-script', JSON.stringify(embedScript));
-		}
-	}, [embedScript]);
+	const { forms, isLoading, error } = useJobberForms();
 
 	useEffect(() => {
-		widget
-			.getProp('form-type')
-			.then((formType) => {
-				if (formType) {
-					setFormType(formType as FormType);
+		Promise.all([
+			widget.getProp('embed-script'),
+			widget.getProp('form-type'),
+			widget.getProp('id'),
+		])
+			.then(async ([savedEmbed, savedFormType, savedId]) => {
+				// A new widget needs its id saved before anything else. Saving the default
+				// form at the same time left a new widget with no props at all.
+				if (!savedId) {
+					await widget.setProp('id', `jobber-widget-${uuidv4()}`);
 				}
+				setFormId(getSavedFormId(savedEmbed));
+				setLegacyFormType(savedFormType || null);
 			})
-			.catch((error) => console.error('Failed to fetch form-type:', error));
-
-		widget.getProp('id').then((id) => {
-			if (!id) {
-				widget.setProp('id', `jobber-widget-${uuidv4()}`);
-			}
-		});
+			.catch((err) => console.error('Failed to read widget settings:', err))
+			.finally(() => setPropsLoaded(true));
 
 		getInstance().then(({ site }) => {
 			setDashboardUrl(`https://manage.wix.com/dashboard/${site?.siteId}/${pageMetadata.id}`);
 		});
-	}, [setFormType]);
+	}, []);
 
-	const handleFormTypeChange = useCallback(
+	const selectedForm = useMemo(
+		() => forms.find((form) => form.id === formId) ?? null,
+		[forms, formId],
+	);
+
+	const needsRepick = propsLoaded && !formId && !!legacyFormType;
+	const selectionMissing = propsLoaded && !!formId && forms.length > 0 && !selectedForm;
+
+	const selectForm = useCallback(async (form: JobberForm) => {
+		setStoreError(null);
+		const stored = await storeForm(form);
+		if (!stored) {
+			setStoreError("This form's content could not be loaded. Please try again.");
+			return;
+		}
+		setFormId(form.id);
+	}, []);
+
+	// A brand new widget starts from the account's default form. A widget saved in the
+	// old shape is left alone, so a live page never changes form without the owner choosing.
+	useEffect(() => {
+		if (!propsLoaded || formId || legacyFormType || forms.length === 0) {
+			return;
+		}
+		const preferred = forms.find((form) => form.default) ?? forms[0];
+		selectForm(preferred);
+	}, [propsLoaded, formId, legacyFormType, forms, selectForm]);
+
+	// The saved form was turned off or deleted in Jobber. Switch the widget to the account
+	// default, so visitors see a working form rather than Jobber's "form not found" page.
+	useEffect(() => {
+		if (!selectionMissing) {
+			return;
+		}
+		const defaultForm = forms.find((form) => form.default);
+		if (defaultForm) {
+			selectForm(defaultForm).then(() => setFellBackToDefault(true));
+		}
+	}, [selectionMissing, forms, selectForm]);
+
+	// Refresh the stored copy each time the panel opens, so edits made to the form in
+	// Jobber reach the live widget. Without this the widget keeps its original snapshot.
+	useEffect(() => {
+		if (selectedForm) {
+			storeForm(selectedForm);
+		}
+	}, [selectedForm]);
+
+	const options = useMemo(
+		() =>
+			forms.map((form) => ({
+				id: form.id,
+				value: form.default ? `${form.name} (default)` : form.name,
+			})),
+		[forms],
+	);
+
+	const handleFormChange = useCallback(
 		(option: DropdownLayoutValueOption) => {
-			const newFormType = option.id.toString();
-			widget.setProp('form-type', newFormType).then(() => {
-				setFormType(newFormType as FormType);
-			});
+			const form = forms.find((item) => item.id === option.id.toString());
+			if (form) {
+				selectForm(form);
+			}
 		},
-		[setFormType],
+		[forms, selectForm],
 	);
 
 	const handleNavigateToDashboard = useCallback(() => {
@@ -89,80 +174,113 @@ const Panel: FC = () => {
 		}
 	}, [dashboardUrl]);
 
+	const notice = (() => {
+		if (storeError) {
+			return storeError;
+		}
+		if (needsRepick) {
+			return [
+				'This widget was set up with an older version of the Jobber app. The form still works on your site.',
+				'Forms are now listed by the names they have in Jobber, and you can build your own. Find and create forms in Jobber under Settings, Requests and Bookings, then select one from the Form list.',
+				'If you do nothing, this widget keeps showing the same form.',
+			].join('\n\n');
+		}
+		if (fellBackToDefault) {
+			return 'The selected form is no longer available, so visitors now see your default form. Choose another form if you prefer.';
+		}
+		if (selectionMissing) {
+			return 'The selected form is no longer available. Choose another form.';
+		}
+		return null;
+	})();
+
+	const renderBody = () => {
+		if (error?.cause === 'not-connected') {
+			return (
+				<Box direction="vertical" gap="12px" align="center">
+					<Text size="small" weight="normal" align="center">
+						Your Wix site isn&apos;t connected to Jobber. Click &apos;Go to
+						Dashboard&apos; to connect your Jobber account, or click the
+						&apos;Manage&apos; button on this widget.
+					</Text>
+					<Button
+						priority="primary"
+						onClick={handleNavigateToDashboard}
+						disabled={!dashboardUrl || isNavigating}
+					>
+						{isNavigating ? 'Opening Dashboard...' : 'Go to Dashboard'}
+					</Button>
+				</Box>
+			);
+		}
+
+		if (!isLoading && !error && forms.length === 0) {
+			return (
+				<Text size="small" weight="normal">
+					No enabled forms were found on your Jobber account. Create or enable a form in
+					Jobber, then reopen these settings.
+				</Text>
+			);
+		}
+
+		return (
+			<FormField label="Form">
+				<Dropdown
+					selectedId={selectedForm?.id ?? undefined}
+					options={options}
+					onSelect={handleFormChange}
+					aria-label="Form"
+					placeholder="Select a form to display"
+					// The list is attached inside the panel's scrolling area by default, which
+					// cuts it off after one option, so attach it to the panel window instead.
+					popoverProps={{
+						appendTo: 'window',
+						flip: false,
+						fixed: true,
+						placement: 'bottom',
+						width: '100%',
+						minWidth: 192,
+					}}
+				/>
+			</FormField>
+		);
+	};
+
 	return (
 		<WixDesignSystemProvider>
 			<SidePanel width="300" height="100vh">
 				<SidePanel.Content noPadding stretchVertically>
-					<SidePanel.Field>
-						{error?.cause === 'not-connected' ? (
-							<Box direction="vertical" gap="12px" align="center">
-								<Text size="small" weight="normal" align="center">
-									Your Wix site isn&apos;t connected to Jobber. Click &apos;Go to
-									Dashboard&apos; to connect your Jobber account, or click the
-									&apos;Manage&apos; button on this widget.
-								</Text>
-								<Button
-									priority="primary"
-									onClick={handleNavigateToDashboard}
-									disabled={!dashboardUrl || isNavigating}
-								>
-									{isNavigating ? 'Opening Dashboard...' : 'Go to Dashboard'}
-								</Button>
-							</Box>
-						) : (
-							<FormField label="Form Type">
-								<Dropdown
-									selectedId={formType ?? undefined}
-									options={options}
-									onSelect={handleFormTypeChange}
-									aria-label="Form Type"
-									placeholder="Select a form to display"
-								/>
-							</FormField>
-						)}
-					</SidePanel.Field>
+					<SidePanel.Field>{renderBody()}</SidePanel.Field>
 				</SidePanel.Content>
-				{isLoading || error || embedScript.markup.length > 0 ? (
+				{isLoading || error || notice || selectedForm ? (
 					<SidePanel.Footer noPadding>
 						<SectionHelper
 							fullWidth
-							appearance={error && !isLoading ? 'warning' : 'success'}
+							appearance={(error && !isLoading) || notice ? 'warning' : 'success'}
 							border="topBottom"
 						>
-							{isLoading && (
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										gap: '8px',
-									}}
-								>
-									<Loader size="tiny" />
-									<Text size="small" weight="normal">
-										Fetching Jobber form...
-									</Text>
-								</div>
-							)}
-							{error && !isLoading && (
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										gap: '8px',
-									}}
-								>
-									<Text size="small" weight="normal">
-										{error.message}
-									</Text>
-								</div>
-							)}
-							{!isLoading && !error && embedScript.markup.length > 0 && (
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									gap: '8px',
+								}}
+							>
+								{isLoading && <Loader size="tiny" />}
 								<Text size="small" weight="normal">
-									Jobber form fetched successfully.
+									{isLoading && 'Fetching your Jobber forms...'}
+									{!isLoading && error && error.message}
+									{!isLoading && !error && notice && (
+										<span style={{ whiteSpace: 'pre-line' }}>{notice}</span>
+									)}
+									{!isLoading &&
+										!error &&
+										!notice &&
+										selectedForm &&
+										'Jobber form loaded.'}
 								</Text>
-							)}
+							</div>
 						</SectionHelper>
 					</SidePanel.Footer>
 				) : null}
