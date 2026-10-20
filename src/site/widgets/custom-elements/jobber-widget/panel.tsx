@@ -168,6 +168,15 @@ const Panel: FC = () => {
 			);
 		}
 
+		if (!isLoading && !error && forms.length === 0) {
+			return (
+				<Text size="small" weight="normal">
+					No enabled forms were found on your Jobber account. Create or enable a form in
+					Jobber, then reopen these settings.
+				</Text>
+			);
+		}
+
 		return (
 			<FormField label="Form">
 				<Dropdown
