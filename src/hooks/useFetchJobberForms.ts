@@ -15,6 +15,8 @@ export type EmbedObject = {
 		attributes: Record<string, string>;
 		content: string;
 	}>;
+	/** The chosen form's id, stored by the widget settings panel. */
+	formId?: string;
 };
 
 /**

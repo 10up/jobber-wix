@@ -16,13 +16,20 @@ import {
 
 import '@wix/design-system/styles.global.css';
 import { v4 as uuidv4 } from 'uuid';
-import { useJobberForms, type JobberForm } from '../../../../hooks/useFetchJobberForms';
+import {
+	useJobberForms,
+	type EmbedObject,
+	type JobberForm,
+} from '../../../../hooks/useFetchJobberForms';
 import pageMetadata from '../../../../dashboard/pages/page.json';
 import { getInstance } from '../../../../backend/get-app-instance.web';
 
 /**
- * Store a form on the widget: its id to remember the choice, and its processed
- * embed, which is what the site widget actually renders.
+ * Store a form on the widget: its processed embed, which is what the site widget
+ * renders, with the form's id alongside it to remember the choice.
+ *
+ * The id lives inside the embed prop rather than a prop of its own because Wix only
+ * kept the first value written to a new prop and ignored later changes.
  *
  * @param form The form to store
  * @returns {Promise<boolean>} False when the form's embed could not be processed
@@ -33,9 +40,24 @@ async function storeForm(form: JobberForm): Promise<boolean> {
 		return false;
 	}
 
-	await widget.setProp('form-id', form.id);
-	await widget.setProp('embed-script', JSON.stringify(form.inline));
+	await widget.setProp('embed-script', JSON.stringify({ ...form.inline, formId: form.id }));
 	return true;
+}
+
+/**
+ * Read the chosen form's id back from the stored embed.
+ *
+ * @param savedEmbed The widget's embed-script prop
+ * @returns {string | null} The form id, or null when none was stored
+ */
+function getSavedFormId(savedEmbed: unknown): string | null {
+	try {
+		const embed: EmbedObject =
+			typeof savedEmbed === 'string' ? JSON.parse(savedEmbed) : (savedEmbed as EmbedObject);
+		return embed?.formId || null;
+	} catch {
+		return null;
+	}
 }
 
 const Panel: FC = () => {
@@ -52,9 +74,9 @@ const Panel: FC = () => {
 	const { forms, isLoading, error } = useJobberForms();
 
 	useEffect(() => {
-		Promise.all([widget.getProp('form-id'), widget.getProp('form-type')])
-			.then(([savedFormId, savedFormType]) => {
-				setFormId(savedFormId || null);
+		Promise.all([widget.getProp('embed-script'), widget.getProp('form-type')])
+			.then(([savedEmbed, savedFormType]) => {
+				setFormId(getSavedFormId(savedEmbed));
 				setLegacyFormType(savedFormType || null);
 			})
 			.catch((err) => console.error('Failed to read widget settings:', err))
