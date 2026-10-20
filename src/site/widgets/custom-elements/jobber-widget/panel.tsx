@@ -74,19 +74,22 @@ const Panel: FC = () => {
 	const { forms, isLoading, error } = useJobberForms();
 
 	useEffect(() => {
-		Promise.all([widget.getProp('embed-script'), widget.getProp('form-type')])
-			.then(([savedEmbed, savedFormType]) => {
+		Promise.all([
+			widget.getProp('embed-script'),
+			widget.getProp('form-type'),
+			widget.getProp('id'),
+		])
+			.then(async ([savedEmbed, savedFormType, savedId]) => {
+				// A new widget needs its id saved before anything else. Saving the default
+				// form at the same time left a new widget with no props at all.
+				if (!savedId) {
+					await widget.setProp('id', `jobber-widget-${uuidv4()}`);
+				}
 				setFormId(getSavedFormId(savedEmbed));
 				setLegacyFormType(savedFormType || null);
 			})
 			.catch((err) => console.error('Failed to read widget settings:', err))
 			.finally(() => setPropsLoaded(true));
-
-		widget.getProp('id').then((id) => {
-			if (!id) {
-				widget.setProp('id', `jobber-widget-${uuidv4()}`);
-			}
-		});
 
 		getInstance().then(({ site }) => {
 			setDashboardUrl(`https://manage.wix.com/dashboard/${site?.siteId}/${pageMetadata.id}`);
