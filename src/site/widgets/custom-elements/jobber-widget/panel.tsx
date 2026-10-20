@@ -87,6 +87,16 @@ const Panel: FC = () => {
 		setFormId(form.id);
 	}, []);
 
+	// A brand new widget starts from the account's default form. A widget saved in the
+	// old shape is left alone, so a live page never changes form without the owner choosing.
+	useEffect(() => {
+		if (!propsLoaded || formId || legacyFormType || forms.length === 0) {
+			return;
+		}
+		const preferred = forms.find((form) => form.default) ?? forms[0];
+		selectForm(preferred);
+	}, [propsLoaded, formId, legacyFormType, forms, selectForm]);
+
 	const options = useMemo(
 		() =>
 			forms.map((form) => ({
